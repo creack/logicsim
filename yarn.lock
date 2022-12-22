@@ -684,13 +684,13 @@ react-dom@^18.2.0:
     loose-envify "^1.1.0"
     scheduler "^0.23.0"
 
-react-konva-utils@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/react-konva-utils/-/react-konva-utils-0.3.0.tgz#d9099ad1a767286b24fb1b08377af2dfa5c9f176"
-  integrity sha512-yH5FVpDGQ8gHeClyHY533M4oSLjEfYuvn+Z29zXm9osjhuulhtJrh5k+wtyY6QSC0MG0ioqE0cjiudGl1WGB9A==
+react-konva-utils@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/react-konva-utils/-/react-konva-utils-0.3.1.tgz#145609371a526387027603c5d19707c77ea2a375"
+  integrity sha512-fAVTJnW4DF8klaY2HrYNrybJVJE7JRHkOhFnavjSmJpLwnyfK39KhWqlPsxlERumvG7aWI+As8uw2e3YOrvf2A==
   dependencies:
     react-konva "^18.0.0-0"
-    use-image "^1.0.12"
+    use-image "^1.1.0"
 
 react-konva@^18.0.0-0, react-konva@^18.2.3:
   version "18.2.3"
@@ -784,7 +784,7 @@ update-browserslist-db@^1.0.9:
     escalade "^3.1.1"
     picocolors "^1.0.0"
 
-use-image@^1.0.12:
+use-image@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/use-image/-/use-image-1.1.0.tgz#dc244c34506d3cf3a8177c1f0bbfb158b9beefe5"
   integrity sha512-+cBHRR/44ZyMUS873O0vbVylgMM0AbdTunEplAWXvIQ2p69h2sIo2Qq74zeUsq6AMo+27e5lERQvXzd1crGiMg==
