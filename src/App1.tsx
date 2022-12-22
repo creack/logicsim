@@ -1,36 +1,46 @@
-import React from "react";
-import { Stage, Layer, Line, Circle, Rect, Group, Text } from "react-konva";
-import type { KonvaEventObject } from "konva/lib/Node";
 import type konva from "konva";
-import { library, gState } from "./lib";
+import Konva from "konva";
+import type { KonvaEventObject } from "konva/lib/Node";
+import React from "react";
+import { Circle, Group, Layer, Line, Rect, Stage, Text } from "react-konva";
+import { Html } from "react-konva-utils";
 import type { ConnectionIO, IO } from "./entityInstance";
 import { EntityInstance } from "./entityInstance";
+import { gState, library } from "./lib";
 import {
-  ScreenCtx,
-  UILayoutHeader,
-  UILayoutFooter,
-  UILayoutMain,
   PaneCtx,
+  ScreenCtx,
+  UILayoutFooter,
+  UILayoutHeader,
+  UILayoutMain,
 } from "./UI";
-import { Html } from "react-konva-utils";
-import Konva from "konva";
 
 const IOElement: React.FC<{
   pos: number;
-  mode: "input" | "output";
+  mode: "inputs" | "outputs";
   paneWidth: number;
   height: number;
   title?: string;
   setPos?: (title: string, newPos: number) => void;
   color: string;
-}> = ({ mode, pos, paneWidth, height, title, setPos, color }) => {
+  onClickConnection?: (target: ConnectionIO, x: number, y: number) => void;
+}> = ({
+  mode,
+  pos,
+  paneWidth,
+  height,
+  title,
+  setPos,
+  color,
+  onClickConnection,
+}) => {
   const { screenWidth } = React.useContext(ScreenCtx);
   const { centerPaneX, outerBorderWidth } = React.useContext(PaneCtx);
   const ref = React.useRef<Konva.Group>(null);
   const width = paneWidth * 0.6;
 
   const x =
-    mode === "input"
+    mode === "inputs"
       ? (paneWidth - width) / 2
       : screenWidth - paneWidth + (paneWidth - width) / 2;
 
@@ -70,9 +80,9 @@ const IOElement: React.FC<{
     (e: KonvaEventObject<MouseEvent>) => {
       e.currentTarget.setAttr("prev_fill", e.currentTarget.getAttr("fill"));
       const prevRadius = parseInt(e.currentTarget.getAttr("radius"));
-      e.currentTarget.setAttr("prev_radius", prevRadius.toString());
+      e.currentTarget.setAttr("prev_radius", prevRadius);
       e.currentTarget.setAttr("fill", "rgb(126, 126, 126)");
-      e.currentTarget.setAttr("radius", (prevRadius * 1.3).toString());
+      e.currentTarget.setAttr("radius", prevRadius * 1.3);
     },
     []
   );
@@ -83,6 +93,20 @@ const IOElement: React.FC<{
       e.currentTarget.setAttr("radius", e.currentTarget.getAttr("prev_radius"));
     },
     []
+  );
+
+  const handleConnectionOnClick = React.useCallback(
+    (e: KonvaEventObject<MouseEvent>) => {
+      if (!title) return;
+      e.cancelBubble = true;
+      const pos = e.currentTarget.absolutePosition();
+      onClickConnection?.(
+        { Type: "", title: "", subtype: mode, subtitle: title },
+        pos.x,
+        pos.y - connectionRadius / 2
+      );
+    },
+    [onClickConnection, connectionRadius]
   );
 
   return (
@@ -105,11 +129,11 @@ const IOElement: React.FC<{
         stroke="black"
         strokeWidth={1}
         points={[
-          mode === "input"
+          mode === "inputs"
             ? centerPaneX - x
             : -(paneWidth - width) / 2 - outerBorderWidth,
           height / 2,
-          mode === "input"
+          mode === "inputs"
             ? centerPaneX - x + toggleRadius * 2.5
             : -(paneWidth - width) / 2 - outerBorderWidth - toggleRadius * 2.5,
           height / 2,
@@ -118,7 +142,7 @@ const IOElement: React.FC<{
       <Circle
         fill="red"
         x={
-          mode === "input"
+          mode === "inputs"
             ? centerPaneX - x
             : -(paneWidth - width) / 2 - outerBorderWidth
         }
@@ -128,7 +152,7 @@ const IOElement: React.FC<{
       <Circle
         fill="black"
         x={
-          mode === "input"
+          mode === "inputs"
             ? centerPaneX - x + toggleRadius * 2.5
             : -(paneWidth - width) / 2 - outerBorderWidth - toggleRadius * 2.5
         }
@@ -136,16 +160,19 @@ const IOElement: React.FC<{
         radius={connectionRadius}
         onMouseOver={handleConnectionOnMouseOver}
         onMouseOut={handleConnectionOnMouseOut}
+        onClick={handleConnectionOnClick}
       />
     </Group>
   );
 };
 
 const IOPane: React.FC<{
-  mode: "input" | "output";
+  mode: "inputs" | "outputs";
   ios: IO[] | undefined;
   setIOPos: (title: string, newPos: number) => void;
-}> = ({ mode, ios = [], setIOPos }) => {
+  addIO: (pos: number) => void;
+  onClickConnection: (target: ConnectionIO, x: number, y: number) => void;
+}> = ({ mode, ios = [], setIOPos, addIO, onClickConnection }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const { sidePaneWidth, sidePaneHeight } = React.useContext(PaneCtx);
   const [pos, setPos] = React.useState<number | null>(null);
@@ -182,11 +209,12 @@ const IOPane: React.FC<{
   );
 
   const handleOnClick = React.useCallback(
-    (e: KonvaEventObject<MouseEvent>) => {
-      console.log(">>>", e.currentTarget);
+    (_: KonvaEventObject<MouseEvent>) => {
+      if (!pos) return;
+      addIO(pos);
       setPos(null);
     },
-    [setPos]
+    [setPos, addIO, pos]
   );
 
   return (
@@ -196,7 +224,7 @@ const IOPane: React.FC<{
       onClick={handleOnClick}
     >
       <Rect
-        x={mode === "input" ? 0 : screenWidth - sidePaneWidth}
+        x={mode === "inputs" ? 0 : screenWidth - sidePaneWidth}
         y={0}
         width={sidePaneWidth}
         height={screenHeight - screenHeight * (0.07 + 0.02)}
@@ -220,6 +248,7 @@ const IOPane: React.FC<{
           title={io.title}
           setPos={setIOPos}
           color="rgb(58, 58, 58)"
+          onClickConnection={onClickConnection}
         />
       ))}
       <Text text="worl2d" />
@@ -238,6 +267,20 @@ const Main: React.FC = () => {
   );
   const [inputs, setInputs] = React.useState(g.root.inputs ?? []);
   const [outputs, setOutputs] = React.useState(g.root.outputs ?? []);
+  const [connections, setConnections] = React.useState(
+    g.root.connections ?? []
+  );
+
+  const [drawConnection, setDrawConnection] = React.useState<{
+    drawing: boolean;
+    drawingPoint: [number, number] | null;
+    From?: ConnectionIO;
+    To?: ConnectionIO;
+    points: [number, number][];
+  }>({ drawing: false, drawingPoint: null, points: [] });
+
+  const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
+  const { centerPaneY } = React.useContext(PaneCtx);
 
   const setInputPos = React.useCallback(
     (title: string, newPos: number) => {
@@ -261,12 +304,124 @@ const Main: React.FC = () => {
     },
     [setOutputs]
   );
+  const addInput = React.useCallback(
+    (pos: number) => {
+      setInputs((inputs) => [
+        ...inputs,
+        { title: (inputs.length + 1).toString(), value: false, y: pos },
+      ]);
+    },
+    [setInputs]
+  );
+  const addOutput = React.useCallback(
+    (pos: number) => {
+      setOutputs((outputs) => [
+        ...outputs,
+        { title: (outputs.length + 1).toString(), value: false, y: pos },
+      ]);
+    },
+    [setOutputs]
+  );
+
+  const handleOnClickConnection = React.useCallback(
+    (target: ConnectionIO, x: number, y: number) => {
+      setDrawConnection((draw) => {
+        if (draw.drawing && draw.From) {
+          setConnections((connections) => [
+            ...connections,
+            {
+              From: draw.From,
+              To: target,
+              points: [...draw.points.flat(), x, y],
+            },
+          ]);
+        }
+        return {
+          drawing: !draw.drawing,
+          drawingPoint: draw.drawing ? null : [x, y],
+          points: draw.drawing ? [] : [x, y],
+          From: target,
+        };
+      });
+    },
+    [setDrawConnection, setConnections]
+  );
+
+  const handleOnMouseMove = React.useCallback(
+    (e: KonvaEventObject<MouseEvent>) => {
+      if (!drawConnection.drawing) return;
+
+      setDrawConnection({
+        ...drawConnection,
+        drawingPoint: [e.evt.offsetX, e.evt.offsetY],
+      });
+    },
+    [drawConnection, setDrawConnection]
+  );
+
+  const handleOnClick = React.useCallback(
+    (e: KonvaEventObject<MouseEvent>) => {
+      if (!drawConnection.drawing) return;
+
+      setDrawConnection({
+        ...drawConnection,
+        points: [...drawConnection.points, [e.evt.offsetX, e.evt.offsetY]],
+      });
+    },
+    [drawConnection, setDrawConnection]
+  );
 
   return (
-    <>
-      <IOPane mode="input" ios={inputs} setIOPos={setInputPos} />
-      <IOPane mode="output" ios={outputs} setIOPos={setOutputPos} />
-    </>
+    <Group
+      width={screenWidth}
+      height={screenHeight}
+      onMouseMove={handleOnMouseMove}
+      onClick={handleOnClick}
+      id="centerPlaceholder2"
+    >
+      <Rect id="centerPlaceholder" width={screenWidth} height={screenHeight} />
+      <IOPane
+        mode="inputs"
+        ios={inputs}
+        setIOPos={setInputPos}
+        addIO={addInput}
+        onClickConnection={handleOnClickConnection}
+      />
+      <IOPane
+        mode="outputs"
+        ios={outputs}
+        setIOPos={setOutputPos}
+        addIO={addOutput}
+        onClickConnection={handleOnClickConnection}
+      />
+      {(drawConnection.drawing || drawConnection.points.length > 1) && (
+        <Line
+          stroke="black"
+          strokeWidth={3}
+          tension={0.3}
+          points={[
+            ...drawConnection.points,
+            drawConnection.drawingPoint as [number, number],
+          ]
+            .filter((elem) => !!elem)
+            .flat()
+            .map((elem, i) => (i % 2 === 0 ? elem : elem - centerPaneY))}
+        />
+      )}
+      {connections
+        .filter((connection) => connection.points?.length ?? 0 > 0)
+        .map((connection, i) => (
+          <Line
+            key={i}
+            stroke="black"
+            strokeWidth={3}
+            tension={0.3}
+            points={connection.points!.map((elem, i) =>
+              i % 2 === 0 ? elem : elem - centerPaneY
+            )}
+          />
+        ))}
+    </Group>
   );
 };
 

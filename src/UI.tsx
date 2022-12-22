@@ -10,6 +10,7 @@ export const PaneCtx = React.createContext({
   sidePaneWidth: 0,
   sidePaneHeight: 0,
   centerPaneX: 0,
+  centerPaneY: 0,
   centerPaneWidth: 0,
   outerBorderWidth: 0,
   innerBorderWidth: 0,
@@ -80,6 +81,9 @@ export const UILayoutMain: React.FC<{
   const headerHeightRatio = 0.07;
   const headerBorderRatio = 0.02;
 
+  const outerBorderWidth = screenWidth * outerBorderRatio;
+  const innerBorderWidth = screenHeight * innerBorderRatio;
+
   const sidePaneWidth = screenWidth * sidePaneWidthRatio;
   const sidePaneHeight =
     screenHeight -
@@ -87,11 +91,11 @@ export const UILayoutMain: React.FC<{
       screenWidth * outerBorderRatio -
       (screenHeight * innerBorderRatio) / 2) *
       2;
-  const centerPaneX = sidePaneWidth + screenWidth * outerBorderRatio;
+  const headerHeight = screenHeight * headerHeightRatio;
+  const centerPaneX = sidePaneWidth + outerBorderWidth;
+  const centerPaneY = headerHeight + outerBorderWidth;
   const centerPaneWidth =
     screenWidth * (1 - sidePaneWidthRatio * 2 - outerBorderRatio * 2);
-  const outerBorderWidth = screenWidth * outerBorderRatio;
-  const innerBorderWidth = screenHeight * innerBorderRatio;
 
   return (
     <PaneCtx.Provider
@@ -99,6 +103,7 @@ export const UILayoutMain: React.FC<{
         sidePaneWidth,
         sidePaneHeight,
         centerPaneX,
+        centerPaneY,
         centerPaneWidth,
         outerBorderWidth,
         innerBorderWidth,
@@ -115,8 +120,8 @@ export const UILayoutMain: React.FC<{
         fill="rgb(50, 50, 50)"
         stroke="rgb(70, 70, 70)"
         strokeWidth={innerBorderWidth}
-        x={sidePaneWidth + outerBorderWidth}
-        y={centerPaneX}
+        x={centerPaneX}
+        y={centerPaneY}
         width={centerPaneWidth}
         height={sidePaneHeight}
       />
