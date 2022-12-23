@@ -7,6 +7,35 @@ import type { Entity } from "./entityInstance";
 
 export const library: () => Entity[] = () => [
   {
+    Type: "nand",
+    title: "nand",
+    inputs: [
+      { title: "nandIn0", y: 0.28 },
+      { title: "nandIn1", y: 0.72 },
+    ],
+    outputs: [{ title: "nandOut0", y: 0.5 }],
+    ui: {
+      pins: {
+        radius: 5,
+      },
+      shape: {
+        x: 10,
+        y: 10,
+        width: 100,
+        height: 50,
+        color: "purple",
+      },
+      title: {
+        x: 15,
+        y: 10,
+        fontSize: 28,
+        scaleX: 1,
+        scaleY: 1,
+        color: "#fff",
+      },
+    },
+  },
+  {
     Type: "raw8segments",
     title: "raw8segments",
     Component: RawEightSegmentsDisplay,
@@ -24,19 +53,39 @@ export const library: () => Entity[] = () => [
   {
     Type: "not",
     title: "not",
-    x: 10,
-    y: 10,
-    width: 150,
-    height: 200,
-    color: "red",
-    inputs: [{ title: "0" }],
-    outputs: [{ title: "0" }],
+    ui: {
+      pins: {
+        radius: 5,
+      },
+      shape: {
+        x: 10,
+        y: 10,
+        width: 90,
+        height: 30,
+        transparent: false,
+        color: "#ff0000",
+      },
+      title: {
+        x: 20,
+        y: 0,
+        fontSize: 28,
+        color: "#ffffff",
+        scaleX: 1,
+        scaleY: 1,
+      },
+    },
+    inputs: [{ title: "0", y: 0.5 }],
+    outputs: [{ title: "0", y: 0.5 }],
     entities: [
       {
         Type: "nand",
         title: "nand1",
-        x: 40,
-        y: 40,
+        ui: {
+          shape: {
+            x: 40,
+            y: 40,
+          },
+        },
       },
     ],
     connections: [
@@ -82,86 +131,127 @@ export const library: () => Entity[] = () => [
   {
     Type: "and",
     title: "and",
-    width: 300,
-    height: 120,
-    x: 10,
-    y: 10,
-    color: "lightblue",
+    ui: {
+      shape: {
+        x: 10,
+        y: 10,
+        width: 300,
+        height: 120,
+      },
+      title: {
+        x: 30,
+        y: 40,
+        fontSize: 28,
+        color: "#000",
+        scaleX: 1,
+        scaleY: 1,
+      },
+    },
     inputs: [
-      { title: "0", y: 50 },
-      { title: "1", y: 200 },
+      { title: "andIn0", y: 0.28 },
+      { title: "andIn1", y: 0.72 },
     ],
-    outputs: [{ title: "0", y: 200 }],
+    outputs: [{ title: "andOut0", y: 0.5 }],
     entities: [
       {
         Type: "nand",
         title: "nand0",
-        x: 60,
-        y: 50,
-        width: 80,
-        height: 60,
+        ui: {
+          shape: {
+            x: 200,
+            y: 50,
+          },
+        },
+      },
+      {
+        Type: "not",
+        title: "not0",
+        ui: {
+          shape: {
+            x: 360,
+            y: 250,
+          },
+        },
       },
       {
         Type: "not",
         title: "not1",
-        x: 180,
-        y: 50,
-        width: 80,
-        height: 60,
+        ui: {
+          shape: {
+            x: 360,
+            y: 450,
+          },
+        },
       },
     ],
     connections: [
-      {
-        From: {
-          Type: "root",
-          title: "and",
-          subtype: "inputs",
-          subtitle: "0",
-        },
-        To: {
-          Type: "entity",
-          title: "nand0",
-          subtype: "inputs",
-          subtitle: "0",
-        },
-      },
-      {
-        From: {
-          Type: "root",
-          title: "and",
-          subtype: "inputs",
-          subtitle: "1",
-        },
-        To: {
-          Type: "entity",
-          title: "nand0",
-          subtype: "inputs",
-          subtitle: "1",
-        },
-      },
-      {
-        From: {
-          Type: "entity",
-          title: "nand0",
-          subtype: "outputs",
-          subtitle: "0",
-        },
-        To: {
-          Type: "entity",
-          title: "not1",
-          subtype: "inputs",
-          subtitle: "0",
-        },
-      },
-      {
-        From: {
-          Type: "entity",
-          title: "not1",
-          subtype: "outputs",
-          subtitle: "0",
-        },
-        To: { Type: "root", title: "and", subtype: "outputs", subtitle: "0" },
-      },
+      // {
+      //   From: {
+      //     Type: "root",
+      //     title: "and",
+      //     subtype: "inputs",
+      //     subtitle: "0",
+      //   },
+      //   To: {
+      //     Type: "entity",
+      //     title: "nand0",
+      //     subtype: "inputs",
+      //     subtitle: "0",
+      //   },
+      //   points: [77.5, 119.5, 259.68, 133.5],
+      // },
+      // {
+      //   From: {
+      //     Type: "root",
+      //     title: "and",
+      //     subtype: "inputs",
+      //     subtitle: "1",
+      //   },
+      //   To: {
+      //     Type: "entity",
+      //     title: "nand0",
+      //     subtype: "inputs",
+      //     subtitle: "1",
+      //   },
+      //   points: [77.5, 269.5, 94, 184, 116, 162, 259.68, 155.5],
+      // },
+      // {
+      //   From: {
+      //     Type: "entity",
+      //     title: "nand0",
+      //     subtype: "outputs",
+      //     subtitle: "0",
+      //   },
+      //   To: {
+      //     Type: "entity",
+      //     title: "not0",
+      //     subtype: "inputs",
+      //     subtitle: "0",
+      //   },
+      //   points: [
+      //     359.68, 144.5, 435, 147, 443, 205, 310, 216, 306, 342, 419.68, 334.5,
+      //   ],
+      // },
+      // {
+      //   From: {
+      //     Type: "entity",
+      //     title: "not0",
+      //     subtype: "outputs",
+      //     subtitle: "0",
+      //   },
+      //   To: { Type: "root", title: "and", subtype: "outputs", subtitle: "0" },
+      //   points: [509.68, 334.5, 1202.52, 269.5],
+      // },
+      // {
+      //   From: {
+      //     Type: "entity",
+      //     title: "not0",
+      //     subtype: "outputs",
+      //     subtitle: "0",
+      //   },
+      //   To: { Type: "root", title: "and", subtype: "outputs", subtitle: "0" },
+      //   points: [509.68, 334.5, 1202.52, 269.5],
+      // },
     ],
   },
   {

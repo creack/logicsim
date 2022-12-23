@@ -17,7 +17,11 @@ export type ConnectionIO = {
 export type Connection = {
   From: ConnectionIO;
   To: ConnectionIO;
-  points?: number[];
+  points?: {
+    From: [number, number];
+    intermediaries: [number, number][];
+    To: [number, number];
+  };
   color?: string;
 };
 
@@ -70,20 +74,6 @@ export class EntityInstance {
   constructor(root: Entity, library: () => Entity[], indent: number = 0) {
     this.root = root;
     this.entities = (this.root.entities ?? []).map((elem) => {
-      if (elem.Type === "nand") {
-        // Primitive.
-        return new EntityInstance(
-          {
-            inputs: [{ title: "0" }, { title: "1" }],
-            outputs: [{ title: "0" }],
-            color: "purple",
-            height: 200,
-            ...elem,
-          },
-          library,
-          indent + 1
-        );
-      }
       const ret = library().find((libEntry) => libEntry.Type === elem.Type);
       if (!ret) {
         throw new Error(`entity type '${elem.Type}' not found`);
