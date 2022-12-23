@@ -22,46 +22,14 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
     [srcType]
   );
 
-  const { setConnections, renderedConnections } = useConnections(g);
   const {
     handleOnClick,
     handleOnMouseMove,
     setDrawConnection,
     renderedDrawConnection,
   } = useDrawConnections();
-
-  const handleOnClickConnection = React.useCallback(
-    (target: ConnectionIO, x: number, y: number) => {
-      setDrawConnection((draw) => {
-        if (draw.drawing && draw.From) {
-          setConnections((connections) => [
-            ...connections,
-            {
-              From: draw.From!,
-              To: target,
-              points: {
-                From: [
-                  draw.points[0][0] / screenWidth,
-                  draw.points[0][1] / screenHeight,
-                ],
-                intermediaries: draw.points
-                  .slice(1)
-                  .map((p) => [p[0] / screenWidth, p[1] / screenHeight]),
-                To: [x / screenWidth, y / screenHeight],
-              },
-            },
-          ]);
-        }
-        return {
-          drawing: !draw.drawing,
-          drawingPoint: draw.drawing ? null : [x, y],
-          points: draw.drawing ? [] : [[x, y]],
-          From: target,
-        };
-      });
-    },
-    [setDrawConnection, setConnections]
-  );
+  const { setConnections, handleOnClickConnection, renderedConnections } =
+    useConnections(g, setDrawConnection);
 
   return (
     <Group

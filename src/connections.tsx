@@ -1,9 +1,13 @@
 import React from "react";
 import { Line } from "react-konva";
-import { EntityInstance } from "./entityInstance";
+import type { drawState } from "./drawConnections";
+import type { ConnectionIO, EntityInstance } from "./entityInstance";
 import { PaneCtx, ScreenCtx } from "./UI";
 
-export const useConnections = (g: EntityInstance) => {
+export const useConnections = (
+  g: EntityInstance,
+  setDrawConnection: React.Dispatch<React.SetStateAction<drawState>>
+) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const { centerPaneY } = React.useContext(PaneCtx);
 
@@ -13,6 +17,39 @@ export const useConnections = (g: EntityInstance) => {
   React.useEffect(() => {
     setConnections(g.root.connections ?? []);
   }, [g, setConnections]);
+
+  const handleOnClickConnection = React.useCallback(
+    (target: ConnectionIO, x: number, y: number) => {
+      setDrawConnection((draw) => {
+        if (draw.drawing && draw.From) {
+          setConnections((connections) => [
+            ...connections,
+            {
+              From: draw.From!,
+              To: target,
+              points: {
+                From: [
+                  draw.points[0][0] / screenWidth,
+                  draw.points[0][1] / screenHeight,
+                ],
+                intermediaries: draw.points
+                  .slice(1)
+                  .map((p) => [p[0] / screenWidth, p[1] / screenHeight]),
+                To: [x / screenWidth, y / screenHeight],
+              },
+            },
+          ]);
+        }
+        return {
+          drawing: !draw.drawing,
+          drawingPoint: draw.drawing ? null : [x, y],
+          points: draw.drawing ? [] : [[x, y]],
+          From: target,
+        };
+      });
+    },
+    [setDrawConnection, setConnections]
+  );
 
   const renderedConnections = React.useMemo(
     () =>
@@ -38,5 +75,5 @@ export const useConnections = (g: EntityInstance) => {
     [connections, screenWidth, screenHeight, centerPaneY]
   );
 
-  return { renderedConnections, setConnections };
+  return { renderedConnections, setConnections, handleOnClickConnection };
 };

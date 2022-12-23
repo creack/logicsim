@@ -4,16 +4,22 @@ import { Line } from "react-konva";
 import type { ConnectionIO } from "./entityInstance";
 import { PaneCtx } from "./UI";
 
+export type drawState = {
+  drawing: boolean;
+  drawingPoint: [number, number] | null;
+  From?: ConnectionIO;
+  To?: ConnectionIO;
+  points: [number, number][];
+};
+
 export const useDrawConnections = () => {
   const { centerPaneY } = React.useContext(PaneCtx);
 
-  const [drawConnection, setDrawConnection] = React.useState<{
-    drawing: boolean;
-    drawingPoint: [number, number] | null;
-    From?: ConnectionIO;
-    To?: ConnectionIO;
-    points: [number, number][];
-  }>({ drawing: false, drawingPoint: null, points: [] });
+  const [drawConnection, setDrawConnection] = React.useState<drawState>({
+    drawing: false,
+    drawingPoint: null,
+    points: [],
+  });
 
   const handleOnMouseMove = React.useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
