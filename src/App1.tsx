@@ -1,18 +1,17 @@
-import type konva from "konva";
 import Konva from "konva";
 import type { KonvaEventObject } from "konva/lib/Node";
 import React from "react";
 import { Circle, Group, Layer, Line, Rect, Stage, Text } from "react-konva";
 import { Html } from "react-konva-utils";
 import {
-  Entity,
   Connection,
   ConnectionIO,
-  IO,
+  Entity,
+  EntityInstance,
   formatEntity,
+  IO,
 } from "./entityInstance";
-import { EntityInstance } from "./entityInstance";
-import { gState, library } from "./lib";
+import { library } from "./lib";
 import {
   PaneCtx,
   ScreenCtx,
@@ -20,11 +19,8 @@ import {
   UILayoutHeader,
   UILayoutMain,
 } from "./UI";
-import { button, useControls } from "leva";
-import { ThumbnailEditor } from "./ThumbnailEditor";
 
 const IOElement: React.FC<{
-  g: EntityInstance;
   pos: number;
   mode: "inputs" | "outputs";
   paneWidth: number;
@@ -35,7 +31,6 @@ const IOElement: React.FC<{
   onClickConnection?: (target: ConnectionIO, x: number, y: number) => void;
   setConnections?: (hdlr: (connections: Connection[]) => Connection[]) => void;
 }> = ({
-  g,
   mode,
   pos,
   paneWidth,
@@ -47,7 +42,7 @@ const IOElement: React.FC<{
   setConnections,
 }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
-  const { centerPaneX, centerPaneWidth, outerBorderWidth, sidePaneHeight } =
+  const { centerPaneX, outerBorderWidth, sidePaneHeight } =
     React.useContext(PaneCtx);
   const ref = React.useRef<Konva.Group>(null);
   const width = paneWidth * 0.6;
@@ -207,7 +202,6 @@ const IOElement: React.FC<{
 };
 
 const IOPane: React.FC<{
-  g: EntityInstance;
   mode: "inputs" | "outputs";
   ios: IO[] | undefined;
   setIOPos: (title: string, newPos: number) => void;
@@ -215,7 +209,6 @@ const IOPane: React.FC<{
   onClickConnection: (target: ConnectionIO, x: number, y: number) => void;
   setConnections?: (hdlr: (connections: Connection[]) => Connection[]) => void;
 }> = ({
-  g,
   mode,
   ios = [],
   setIOPos,
@@ -280,7 +273,6 @@ const IOPane: React.FC<{
       />
       {!!pos && (
         <IOElement
-          g={g}
           mode={mode}
           paneWidth={sidePaneWidth}
           height={ioHeight}
@@ -291,7 +283,6 @@ const IOPane: React.FC<{
       {ios.map((io, i) => (
         <IOElement
           key={i}
-          g={g}
           mode={mode}
           paneWidth={sidePaneWidth}
           height={ioHeight}
@@ -314,29 +305,29 @@ const lookupLibrary = (Type: string): Entity | undefined => {
   return baseLibrary.find((elem) => elem.Type === Type);
 };
 
-const LevaTest: React.FC = () => {
-  const [viewMode, setViewMode] = React.useState<"main" | "thumbnail">("main");
-  const values = useControls("View Mode", {
-    main: button(() => {
-      setViewMode("main");
-    }),
-    thumbnail: button(() => {
-      setViewMode("thumbnail");
-    }),
-  });
-
-  return (
-    <Html>
-      <p>{JSON.stringify({ values, viewMode })}</p>
-    </Html>
-  );
-};
-
+/* const LevaTest: React.FC = () => {
+ *   const [viewMode, setViewMode] = React.useState<"main" | "thumbnail">("main");
+ *   const values = useControls("View Mode", {
+ *     main: button(() => {
+ *       setViewMode("main");
+ *     }),
+ *     thumbnail: button(() => {
+ *       setViewMode("thumbnail");
+ *     }),
+ *   });
+ *
+ *   return (
+ *     <Html>
+ *       <p>{JSON.stringify({ values, viewMode })}</p>
+ *     </Html>
+ *   );
+ * };
+ *  */
 const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
   const g = React.useMemo(
     () =>
       new EntityInstance(
-        library().find((elem) => elem.Type === srcType) ?? gState(),
+        library().find((elem) => elem.Type === srcType),
         library
       ),
     [srcType]
@@ -364,7 +355,7 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
   }>({ drawing: false, drawingPoint: null, points: [] });
 
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
-  const { centerPaneX, centerPaneY, innerBorderWidth, sidePaneHeight } =
+  const { centerPaneX, centerPaneY, innerBorderWidth } =
     React.useContext(PaneCtx);
 
   const setInputPos = React.useCallback(
@@ -415,7 +406,7 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
           setConnections((connections) => [
             ...connections,
             {
-              From: draw.From,
+              From: draw.From!,
               To: target,
               points: {
                 From: [
@@ -478,7 +469,6 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
     >
       <Rect width={screenWidth} height={screenHeight} />
       <IOPane
-        g={g}
         mode="inputs"
         ios={inputs}
         setIOPos={setInputPos}
@@ -487,7 +477,6 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
         setConnections={setConnections}
       />
       <IOPane
-        g={g}
         mode="outputs"
         ios={outputs}
         setIOPos={setOutputPos}
@@ -531,6 +520,11 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
                         ? base.inputs
                         : base.outputs
                     )?.find((pin) => pin.title === elem.From.subtitle);
+                    if (!targetPin) {
+                      throw new Error(
+                        `target from pin ${formatEntity(elem.From)} not found`
+                      );
+                    }
 
                     elem.points.From[1] =
                       (pos.y -
@@ -550,6 +544,11 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
                     const targetPin = (
                       elem.To.subtype === "inputs" ? base.inputs : base.outputs
                     )?.find((pin) => pin.title === elem.To.subtitle);
+                    if (!targetPin) {
+                      throw new Error(
+                        `target to pin ${formatEntity(elem.To)} not found`
+                      );
+                    }
 
                     elem.points.To[1] =
                       (pos.y -
@@ -564,11 +563,15 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
             }}
           >
             <Rect
-              width={ui.shape.width ?? 200}
-              height={ui.shape.height ?? 200}
+              width={ui.shape.width}
+              height={ui.shape.height}
               stroke="red"
               strokeEnabled
-              fill={ui.shape.transparent ? undefined : ui.shape.color ?? "#111"}
+              fill={
+                "transparent" in ui.shape && ui.shape.transparent
+                  ? undefined
+                  : ui.shape.color
+              }
             />
             <Text
               text={entity.Type}
@@ -577,9 +580,9 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
               y={ui.title.y}
               scaleX={ui.title.scaleX}
               scaleY={ui.title.scaleY}
-              fill={ui.title.color ?? "#fff"}
+              fill={ui.title.color}
             />
-            {base.inputs?.map((input, i) => (
+            {base.inputs.map((input, i) => (
               <Circle
                 key={i}
                 fill="blue"
@@ -624,7 +627,7 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
                 }}
               />
             ))}
-            {base.outputs?.map((output, i) => (
+            {base.outputs.map((output, i) => (
               <Circle
                 key={i}
                 fill="blue"
@@ -736,7 +739,7 @@ export const App1 = () => {
                   flexWrap: "wrap",
                 }}
               >
-                {[gState(), ...library()].map((elem, i) => (
+                {[...library()].map((elem, i) => (
                   <button
                     key={i}
                     style={{ marginLeft: 1, marginRight: 1 }}

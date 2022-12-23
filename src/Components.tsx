@@ -1,8 +1,6 @@
 import React from "react";
-import { Stage, Layer, Line, Circle, Rect, Group, Text } from "react-konva";
-import type { KonvaEventObject } from "konva/lib/Node";
-import type konva from "konva";
-import { library, gState } from "./lib";
+import { Circle, Group, Rect } from "react-konva";
+import type { EntityInstance, IO } from "./entityInstance";
 
 export const SignedEigthSegmentsDisplay: React.FC<{
   entity: EntityInstance;

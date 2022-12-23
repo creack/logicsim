@@ -2,9 +2,7 @@ export type IO = {
   title: string;
   value?: boolean | undefined;
 
-  y?: number;
-  colorOn?: string;
-  colorOff?: string;
+  y: number;
 };
 
 export type ConnectionIO = {
@@ -17,26 +15,60 @@ export type ConnectionIO = {
 export type Connection = {
   From: ConnectionIO;
   To: ConnectionIO;
-  points?: {
+  points: {
     From: [number, number];
     intermediaries: [number, number][];
     To: [number, number];
   };
-  color?: string;
+};
+
+export type EntityUI = {
+  pins: {
+    radius: number;
+  };
+  shape: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } & (
+    | {
+        transparent: true;
+      }
+    | {
+        color: string;
+      }
+  );
+  title: {
+    x: number;
+    y: number;
+    fontSize: number;
+    scaleX: number;
+    scaleY: number;
+    color: string;
+  };
+};
+
+export type PartialEntityUI = {
+  pins?: Partial<EntityUI["pins"]>;
+  shape?: Partial<EntityUI["shape"]>;
+  title?: Partial<EntityUI["title"]>;
 };
 
 export type Entity = {
   Type: string;
   title: string;
-  width?: number;
-  height?: number;
-  x?: number;
-  y?: number;
-  color?: string;
-  inputs?: IO[];
-  outputs?: IO[];
-  entities?: Entity[];
-  connections?: Connection[];
+  ui: EntityUI;
+  inputs: IO[];
+  outputs: IO[];
+  connections: Connection[];
+
+  entities: Array<
+    Omit<Entity, "ui" | "inputs" | "outputs" | "connections" | "entities"> & {
+      ui: PartialEntityUI;
+    }
+  >;
+
   truthTable?: Array<{
     inputs: IO[];
     outputs: IO[];
@@ -62,7 +94,7 @@ export const formatEntity = (entity: {
 };
 
 export class EntityInstance {
-  root: Entity;
+  root: Omit<Entity, "ui">;
   entities: EntityInstance[] = [];
 
   actions: Array<{
@@ -71,7 +103,14 @@ export class EntityInstance {
     description: string;
   }> = [];
 
-  constructor(root: Entity, library: () => Entity[], indent: number = 0) {
+  constructor(
+    root: Omit<Entity, "ui"> | undefined,
+    library: () => Omit<Entity, "ui">[],
+    indent: number = 0
+  ) {
+    if (!root) {
+      throw new Error(`missing root entity`);
+    }
     this.root = root;
     this.entities = (this.root.entities ?? []).map((elem) => {
       const ret = library().find((libEntry) => libEntry.Type === elem.Type);
