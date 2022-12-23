@@ -4851,3 +4851,9 @@ export const library: () => Entity[] = () => [
 //   ],
 //   connections: [],
 // });
+
+export const baseLibrary = library();
+
+export const lookupLibrary = (Type: string): Entity | undefined => {
+  return baseLibrary.find((elem) => elem.Type === Type);
+};
