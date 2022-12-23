@@ -6,8 +6,9 @@ import { useDrawConnections } from "./drawConnections";
 import { Entities } from "./Entities";
 import type { ConnectionIO } from "./entityInstance";
 import { EntityInstance } from "./entityInstance";
-import { IOPanes } from "./ioPanes";
+import { useIOPanes } from "./ioPanes";
 import { baseLibrary, library } from "./lib";
+import { ThumbnailEditor } from "./ThumbnailEditor";
 import { ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from "./UI";
 
 const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
@@ -31,6 +32,12 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
   const { setConnections, handleOnClickConnection, renderedConnections } =
     useConnections(g, setDrawConnection);
 
+  const { inputs, outputs, renderedIOPanes } = useIOPanes(
+    g,
+    setConnections,
+    handleOnClickConnection
+  );
+
   return (
     <Group
       width={screenWidth}
@@ -40,34 +47,22 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
     >
       <Rect width={screenWidth} height={screenHeight} />
 
-      <Entities
-        g={g}
-        setConnections={setConnections}
-        handleOnClickConnection={handleOnClickConnection}
-      />
+      {false && (
+        <Entities
+          g={g}
+          setConnections={setConnections}
+          handleOnClickConnection={handleOnClickConnection}
+        />
+      )}
 
-      {renderedDrawConnection}
-      {renderedConnections}
+      {false && renderedDrawConnection}
+      {false && renderedConnections}
+      {renderedIOPanes}
 
-      <IOPanes
-        g={g}
-        setConnections={setConnections}
-        handleOnClickConnection={handleOnClickConnection}
-      />
+      <ThumbnailEditor title={g.root.title} inputs={inputs} outputs={outputs} />
     </Group>
   );
 };
-/*
- *       {srcType === "root" ? (
- *         <LevaTest />
- *       ) : (
- *         <ThumbnailEditor
- *           title={g.root.title}
- *           inputs={inputs}
- *           outputs={outputs}
- *         />
- *       )}
- *  */
 
 export const App1 = () => {
   const screenWidth = 1280;

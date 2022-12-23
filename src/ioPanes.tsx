@@ -292,17 +292,20 @@ const IOPane: React.FC<{
 };
 
 export const IOPanes: React.FC<{
-  g: EntityInstance;
+  inputs: IO[];
+  setInputs: React.Dispatch<React.SetStateAction<IO[]>>;
+  outputs: IO[];
+  setOutputs: React.Dispatch<React.SetStateAction<IO[]>>;
   setConnections: (hdlr: (connections: Connection[]) => Connection[]) => void;
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
-}> = ({ g, setConnections, handleOnClickConnection }) => {
-  const [inputs, setInputs] = React.useState(g.root.inputs ?? []);
-  const [outputs, setOutputs] = React.useState(g.root.outputs ?? []);
-  React.useEffect(() => {
-    setInputs(g.root.inputs ?? []);
-    setOutputs(g.root.outputs ?? []);
-  }, [g, setInputs, setOutputs]);
-
+}> = ({
+  setConnections,
+  handleOnClickConnection,
+  inputs,
+  setInputs,
+  outputs,
+  setOutputs,
+}) => {
   const setInputPos = React.useCallback(
     (title: string, newPos: number) => {
       setInputs((inputs) =>
@@ -364,4 +367,40 @@ export const IOPanes: React.FC<{
       />
     </>
   );
+};
+
+export const useIOPanes = (
+  g: EntityInstance,
+  setConnections: (hdlr: (connections: Connection[]) => Connection[]) => void,
+  handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void
+) => {
+  const [inputs, setInputs] = React.useState(g.root.inputs ?? []);
+  const [outputs, setOutputs] = React.useState(g.root.outputs ?? []);
+  React.useEffect(() => {
+    setInputs(g.root.inputs ?? []);
+    setOutputs(g.root.outputs ?? []);
+  }, [g, setInputs, setOutputs]);
+
+  const renderedIOPanes = React.useMemo(
+    () => (
+      <IOPanes
+        setConnections={setConnections}
+        handleOnClickConnection={handleOnClickConnection}
+        inputs={inputs}
+        setInputs={setInputs}
+        outputs={outputs}
+        setOutputs={setOutputs}
+      />
+    ),
+    [
+      setConnections,
+      handleOnClickConnection,
+      setInputs,
+      inputs,
+      setOutputs,
+      outputs,
+    ]
+  );
+
+  return { inputs, outputs, renderedIOPanes };
 };

@@ -4,7 +4,7 @@ import { useControls } from "leva";
 import React from "react";
 import { Circle, Group, Rect, Text, Transformer } from "react-konva";
 import type { IO } from "./entityInstance";
-import { PaneCtx, ScreenCtx } from "./UI";
+import { PaneCtx } from "./UI";
 
 const TextTransformer: React.FC<{
   text: string;
@@ -202,12 +202,17 @@ export const ThumbnailEditor: React.FC<{
   inputs: IO[];
   outputs: IO[];
 }> = ({ title: baseTitle, inputs, outputs }) => {
-  const [{ title }, set] = useControls(() => ({
-    title: baseTitle,
-  }));
-  const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
-  const { centerPaneX, innerBorderWidth, sidePaneHeight } =
-    React.useContext(PaneCtx);
+  const [{ title }, setTitle] = useControls(
+    () => ({
+      title: baseTitle,
+    }),
+    [baseTitle]
+  );
+  React.useEffect(() => {
+    setTitle({ title: baseTitle });
+  }, [setTitle, baseTitle]);
+
+  const { centerPaneX, innerBorderWidth } = React.useContext(PaneCtx);
   const [shapeProps, setShapeProps] = React.useState<Konva.RectConfig>({
     fill: "orange",
     width: 800,
@@ -243,10 +248,7 @@ export const ThumbnailEditor: React.FC<{
             fill="blue"
             radius={10}
             x={shapeProps.x}
-            y={
-              (shapeProps.y ?? 0) +
-              (shapeProps.height ?? 0) * ((elem.y ?? 0) / sidePaneHeight)
-            }
+            y={(shapeProps.y ?? 0) + (shapeProps.height ?? 0) * (elem.y ?? 0)}
           />
         ))}
         {outputs.map((elem, i) => (
@@ -255,10 +257,7 @@ export const ThumbnailEditor: React.FC<{
             fill="blue"
             radius={10}
             x={(shapeProps.x ?? 0) + (shapeProps.width ?? 0)}
-            y={
-              (shapeProps.y ?? 0) +
-              (shapeProps.height ?? 0) * ((elem.y ?? 0) / sidePaneHeight)
-            }
+            y={(shapeProps.y ?? 0) + (shapeProps.height ?? 0) * (elem.y ?? 0)}
           />
         ))}
         <Text
