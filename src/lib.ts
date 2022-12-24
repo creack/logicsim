@@ -13,6 +13,7 @@ import {
 
 type actionTypes =
   | { type: "save" }
+  | { type: "reset" }
   | {
       type: "updateChildEntityCoordinates";
       parentType: string;
@@ -37,13 +38,27 @@ type actionTypes =
       parentType: string;
       From: ConnectionIO;
       To: ConnectionIO;
+    }
+  | {
+      type: "updateIOPane";
+      parentType: string;
+      mode: "inputs" | "outputs";
+      title: string;
+      y: number;
     };
 
 const reducer = (state: Entity[], action: actionTypes): Entity[] => {
   switch (action.type) {
+    case "reset":
+      localStorage.removeItem("library");
+      const lib = library();
+      localStorage.setItem("library", JSON.stringify(lib));
+      return lib;
+
     case "save":
       localStorage.setItem("library", JSON.stringify(state));
       return state;
+
     case "updateChildEntityCoordinates":
       const { childTarget } = lookupChildTarget(state, action);
       if (!childTarget.ui.shape) {
@@ -52,6 +67,7 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
       childTarget.ui.shape.x = action.x;
       childTarget.ui.shape.y = action.y;
       return state;
+
     case "removeChildEntity":
       lookupChildTarget(state, action); // Throws if parent of child is missing.
       return state.map((parent) =>
@@ -64,8 +80,8 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
             }
           : parent
       );
+
     case "addConnection":
-      console.warn(">>>", action);
       if (!state.find((elem) => elem.Type === action.parentType)) {
         throw new Error(`parent target '${action.parentType}' not found`);
       }
@@ -79,6 +95,10 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
                     !(
                       formatEntity(elem.From) === formatEntity(action.From) &&
                       formatEntity(elem.To) === formatEntity(action.To)
+                    ) &&
+                    !(
+                      formatEntity(elem.From) === formatEntity(action.To) &&
+                      formatEntity(elem.To) === formatEntity(action.From)
                     )
                 ),
                 {
@@ -98,6 +118,7 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
             }
           : parent
       );
+
     case "removeConnection":
       return state.map((parent) =>
         parent.Type === action.parentType
@@ -113,9 +134,27 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
             }
           : parent
       );
+
+    case "updateIOPane":
+      if (!state.find((elem) => elem.Type === action.parentType)) {
+        throw new Error(`parent target '${action.parentType}' not found`);
+      }
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              [action.mode]: [
+                ...parent[action.mode].map((elem) =>
+                  elem.title === action.title ? { ...elem, y: action.y } : elem
+                ),
+              ],
+            }
+          : parent
+      );
+
     default:
       throw new Error(
-        `unknown redurer action type '${JSON.stringify(action)}'`
+        `unknown reducer action type '${JSON.stringify(action)}'`
       );
   }
 };
@@ -314,8 +353,8 @@ const library = (): Entity[] => {
           title: "nand0",
           ui: {
             shape: {
-              x: 200,
-              y: 50,
+              x: 0.3,
+              y: 0.47,
             },
           },
         },
@@ -324,18 +363,8 @@ const library = (): Entity[] => {
           title: "not0",
           ui: {
             shape: {
-              x: 360,
-              y: 250,
-            },
-          },
-        },
-        {
-          Type: "not",
-          title: "not1",
-          ui: {
-            shape: {
-              x: 360,
-              y: 450,
+              x: 0.7,
+              y: 0.47,
             },
           },
         },

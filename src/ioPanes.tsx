@@ -1,13 +1,13 @@
-import Konva from "konva";
 import type { KonvaEventObject } from "konva/lib/Node";
 import React from "react";
-import { Circle, Group, Line, Rect, Text } from "react-konva";
+import { Circle, Group, Line, Rect } from "react-konva";
 import type {
   Connection,
   ConnectionIO,
   EntityInstance,
   IO,
 } from "./entityInstance";
+import { LibraryDispatchCtx } from "./lib";
 import { PaneCtx, ScreenCtx } from "./UI";
 
 const IOElement: React.FC<{
@@ -15,6 +15,7 @@ const IOElement: React.FC<{
   mode: "inputs" | "outputs";
   paneWidth: number;
   height: number;
+  parentType: string;
   title?: string;
   setPos?: (title: string, newPos: number) => void;
   color: string;
@@ -25,6 +26,7 @@ const IOElement: React.FC<{
   pos,
   paneWidth,
   height,
+  parentType,
   title,
   setPos,
   color,
@@ -34,9 +36,9 @@ const IOElement: React.FC<{
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const { centerPaneX, outerBorderWidth, sidePaneHeight } =
     React.useContext(PaneCtx);
-  const ref = React.useRef<Konva.Group>(null);
-  const width = paneWidth * 0.6;
+  const dispatch = React.useContext(LibraryDispatchCtx);
 
+  const width = paneWidth * 0.6;
   const x =
     mode === "inputs"
       ? (paneWidth - width) / 2
@@ -44,6 +46,20 @@ const IOElement: React.FC<{
 
   const toggleRadius = 10;
   const connectionRadius = toggleRadius / 2;
+
+  const handleDragEnd = React.useCallback(
+    (e: KonvaEventObject<DragEvent>) => {
+      if (!title) return;
+      dispatch({
+        type: "updateIOPane",
+        parentType,
+        mode,
+        title,
+        y: (e.currentTarget.y() + height / 2) / sidePaneHeight,
+      });
+    },
+    [parentType, mode, title, height, sidePaneHeight]
+  );
 
   const handleDragMove = React.useCallback(
     (e: KonvaEventObject<DragEvent>) => {
@@ -55,8 +71,8 @@ const IOElement: React.FC<{
       setConnections?.((connections) =>
         (connections ?? []).map((elem) => {
           if (
-            elem.From.Type === "" &&
-            elem.From.title === "" &&
+            elem.From.Type === "root" &&
+            elem.From.title === parentType &&
             elem.From.subtype === mode &&
             elem.From.subtitle === title
           ) {
@@ -64,8 +80,8 @@ const IOElement: React.FC<{
               (absPos.y + height / 2 - connectionRadius / 2) / screenHeight;
           }
           if (
-            elem.To.Type === "" &&
-            elem.To.title === "" &&
+            elem.To.Type === "root" &&
+            elem.To.title === parentType &&
             elem.To.subtype === mode &&
             elem.To.subtitle === title
           ) {
@@ -86,6 +102,7 @@ const IOElement: React.FC<{
       screenHeight,
       sidePaneHeight,
       mode,
+      parentType,
       title,
       connectionRadius,
       height,
@@ -145,9 +162,9 @@ const IOElement: React.FC<{
     <Group
       x={x}
       y={pos * sidePaneHeight - height / 2}
-      ref={ref}
       draggable
       onDragMove={handleDragMove}
+      onDragEnd={handleDragEnd}
     >
       <Rect
         fill={color}
@@ -198,6 +215,7 @@ const IOElement: React.FC<{
 };
 
 const IOPane: React.FC<{
+  parentType: string;
   mode: "inputs" | "outputs";
   ios: IO[] | undefined;
   setIOPos: (title: string, newPos: number) => void;
@@ -205,6 +223,7 @@ const IOPane: React.FC<{
   onClickConnection: (target: ConnectionIO, x: number, y: number) => void;
   setConnections?: (hdlr: (connections: Connection[]) => Connection[]) => void;
 }> = ({
+  parentType,
   mode,
   ios = [],
   setIOPos,
@@ -271,6 +290,7 @@ const IOPane: React.FC<{
       />
       {!!pos && (
         <IOElement
+          parentType={parentType}
           mode={mode}
           paneWidth={sidePaneWidth}
           height={ioHeight}
@@ -281,6 +301,7 @@ const IOPane: React.FC<{
       {ios.map((io, i) => (
         <IOElement
           key={i}
+          parentType={parentType}
           mode={mode}
           paneWidth={sidePaneWidth}
           height={ioHeight}
@@ -297,6 +318,7 @@ const IOPane: React.FC<{
 };
 
 export const IOPanes: React.FC<{
+  parentType: string;
   inputs: IO[];
   setInputs: React.Dispatch<React.SetStateAction<IO[]>>;
   outputs: IO[];
@@ -304,6 +326,7 @@ export const IOPanes: React.FC<{
   setConnections: (hdlr: (connections: Connection[]) => Connection[]) => void;
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
 }> = ({
+  parentType,
   setConnections,
   handleOnClickConnection,
   inputs,
@@ -355,6 +378,7 @@ export const IOPanes: React.FC<{
   return (
     <>
       <IOPane
+        parentType={parentType}
         mode="inputs"
         ios={inputs}
         setIOPos={setInputPos}
@@ -363,6 +387,7 @@ export const IOPanes: React.FC<{
         setConnections={setConnections}
       />
       <IOPane
+        parentType={parentType}
         mode="outputs"
         ios={outputs}
         setIOPos={setOutputPos}
@@ -389,6 +414,7 @@ export const useIOPanes = (
   const renderedIOPanes = React.useMemo(
     () => (
       <IOPanes
+        parentType={g.root.Type}
         setConnections={setConnections}
         handleOnClickConnection={handleOnClickConnection}
         inputs={inputs}
