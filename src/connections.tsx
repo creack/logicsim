@@ -27,6 +27,7 @@ export const useConnections = (
 
   const handleOnClickConnection = React.useCallback(
     (target: ConnectionIO, x: number, y: number) => {
+      console.log(">>>>", target);
       setDrawConnection((draw) => {
         if (draw.drawing && draw.From) {
           const newConn: Connection = {

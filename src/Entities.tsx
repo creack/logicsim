@@ -2,7 +2,15 @@ import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { button, useControls } from "leva";
 import React from "react";
-import { Circle, Group, Rect, Text, Transformer } from "react-konva";
+import {
+  Circle,
+  Group,
+  Rect,
+  Text,
+  Transformer,
+  Tag,
+  Label,
+} from "react-konva";
 import type {
   Connection,
   ConnectionIO,
@@ -59,15 +67,30 @@ const IOComponent: React.FC<{
   );
 
   return (
-    <Circle
-      fill="blue"
-      x={mode === "inputs" ? 0 : ui.shape.width}
-      y={ui.shape.height * (y ?? 0)}
-      radius={ui.pins.radius}
-      onMouseOver={handleOnMouseOver}
-      onMouseOut={handleOnMouseOut}
-      onClick={handleOnClick}
-    />
+    <>
+      <Label
+        x={mode === "inputs" ? -5 : ui.shape.width + 5}
+        y={ui.shape.height * (y ?? 0)}
+      >
+        <Tag
+          fill="black"
+          pointerDirection={mode === "inputs" ? "right" : "left"}
+          pointerWidth={5}
+          pointerHeight={5}
+          lineJoin="round"
+        />
+        <Text fontSize={5} fill="white" text={subtitle} />
+      </Label>
+      <Circle
+        fill="blue"
+        x={mode === "inputs" ? 0 : ui.shape.width}
+        y={ui.shape.height * (y ?? 0)}
+        radius={ui.pins.radius}
+        onMouseOver={handleOnMouseOver}
+        onMouseOut={handleOnMouseOut}
+        onClick={handleOnClick}
+      />
+    </>
   );
 };
 
@@ -304,6 +327,16 @@ const EntityComponent: React.FC<{
         onDragMove={handleOnDragMove}
         onDragEnd={handleOnDragEnd}
       >
+        <Label x={ui.shape.width / 2} y={-5} opacity={0.75}>
+          <Tag
+            fill="black"
+            pointerDirection="down"
+            pointerWidth={5}
+            pointerHeight={5}
+            lineJoin="round"
+          />
+          <Text fontSize={8} fill="white" text={entity.title} />
+        </Label>
         <Rect
           width={ui.shape.width}
           height={ui.shape.height}
