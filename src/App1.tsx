@@ -6,7 +6,7 @@ import { useDrawConnections } from "./drawConnections";
 import { Entities } from "./Entities";
 import { EntityInstance } from "./entityInstance";
 import { useIOPanes } from "./ioPanes";
-import { baseLibrary, library } from "./lib";
+import { useLookupLibrary, useLibrary } from "./lib";
 import { ThumbnailEditor } from "./ThumbnailEditor";
 import { ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from "./UI";
 import { useControls, button as levalButton } from "leva";
@@ -14,6 +14,7 @@ import { useControls, button as levalButton } from "leva";
 const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const [viewMode, setViewMode] = React.useState<"main" | "thumbnail">("main");
+  const lib = useLibrary();
 
   useControls(
     "View Mode",
@@ -34,12 +35,23 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
     [viewMode, setViewMode]
   );
 
-  const { base, g } = React.useMemo(() => {
-    const base = library().find((elem) => elem.Type === srcType);
+  const base = useLookupLibrary(srcType);
+  const g = React.useMemo(() => {
     if (!base) throw new Error(`${srcType} not found in lib`);
-    const g = new EntityInstance(base, library);
-    return { base, g };
+    return new EntityInstance(base, lib);
+  }, [base, srcType, lib]);
+
+  React.useEffect(() => {
+    console.log("G Changed:", g);
+  }, [g]);
+
+  React.useEffect(() => {
+    console.log("srcType Changed:", srcType);
   }, [srcType]);
+
+  React.useEffect(() => {
+    console.log("Base ui Changed:", base!.ui);
+  }, [base!.ui]);
 
   const {
     handleOnClick,
@@ -80,7 +92,7 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
 
       {viewMode === "thumbnail" && (
         <ThumbnailEditor
-          ui={base.ui}
+          ui={{ ...base!.ui }}
           title={g.root.title}
           inputs={inputs}
           outputs={outputs}
@@ -95,6 +107,7 @@ export const App1 = () => {
   const screenHeight = 720;
 
   const [srcType, setSrcType] = React.useState("and");
+  const lib = useLibrary();
 
   return (
     <ScreenCtx.Provider value={{ screenWidth, screenHeight }}>
@@ -114,7 +127,7 @@ export const App1 = () => {
                   flexWrap: "wrap",
                 }}
               >
-                {baseLibrary.map((elem, i) => (
+                {lib.map((elem, i) => (
                   <button
                     key={i}
                     style={{ marginLeft: 1, marginRight: 1 }}

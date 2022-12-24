@@ -1,16 +1,18 @@
+import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
+import { useControls } from "leva";
 import React from "react";
-import { Circle, Group, Rect, Text } from "react-konva";
+import { Circle, Group, Rect, Text, Transformer } from "react-konva";
 import type {
-  IO,
   Connection,
   ConnectionIO,
   Entity,
   EntityUI,
+  IO,
   PartialEntityUI,
 } from "./entityInstance";
 import { EntityInstance, formatEntity } from "./entityInstance";
-import { lookupLibrary } from "./lib";
+import { useLookupLibrary } from "./lib";
 import { PaneCtx, ScreenCtx } from "./UI";
 
 const IOComponent: React.FC<{
@@ -94,6 +96,59 @@ const IOs: React.FC<{
   return <Group>{renderedIOs}</Group>;
 };
 
+const EntityTransformer: React.FC<{
+  title: string;
+  shapeRef: React.RefObject<Konva.Group>;
+  ui: EntityUI;
+  isSelected: boolean;
+}> = ({ shapeRef, ui, isSelected, title }) => {
+  const [{ transparent, color }, setMenu] = useControls(
+    `Entity ${title} Props:`,
+    () => ({
+      transparent:
+        "transparent" in ui.shape && ui.shape.transparent ? true : false,
+      color: {
+        value: "color" in ui.shape && ui.shape.color ? ui.shape.color : "#ccc",
+        render: (getValue) => !getValue("Shape Props.transparent"),
+      },
+    }),
+    [ui.shape]
+  );
+  React.useEffect(() => {
+    setMenu({
+      transparent:
+        "transparent" in ui.shape && ui.shape.transparent ? true : false,
+      color: "color" in ui.shape && ui.shape.color ? ui.shape.color : "#ccc",
+    });
+  }, [ui.shape, setMenu]);
+
+  const trRef = React.useRef<Konva.Transformer>(null);
+  React.useEffect(() => {
+    if (!trRef.current || !shapeRef.current) return;
+    if (isSelected) {
+      // We need to attach transformer manually.
+      trRef.current.nodes([shapeRef.current]);
+      trRef.current.getLayer()?.batchDraw();
+    }
+  }, [isSelected]);
+
+  return (
+    <Transformer
+      ref={trRef}
+      rotateEnabled={false}
+      keepRatio
+      enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
+      boundBoxFunc={(oldBox, newBox) => {
+        // Limit resize.
+        if (newBox.width < 35 || newBox.height < 35) {
+          return oldBox;
+        }
+        return newBox;
+      }}
+    />
+  );
+};
+
 const EntityComponent: React.FC<{
   entity: Omit<
     Entity,
@@ -101,13 +156,21 @@ const EntityComponent: React.FC<{
   > & {
     ui: PartialEntityUI;
   };
-  setConnections: (hdlr: (connections: Connection[]) => Connection[]) => void;
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
-}> = ({ entity, setConnections, handleOnClickConnection }) => {
+  setConnections: React.Dispatch<React.SetStateAction<Connection[]>>;
+  setSelected: React.Dispatch<React.SetStateAction<string>>;
+  selected: string;
+}> = ({
+  entity,
+  setConnections,
+  handleOnClickConnection,
+  setSelected,
+  selected,
+}) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const { centerPaneX, innerBorderWidth } = React.useContext(PaneCtx);
 
-  const base = React.useMemo(() => lookupLibrary(entity.Type), [entity.Type]);
+  const base = useLookupLibrary(entity.Type);
   if (!base) {
     throw new Error(`entity type ${entity.Type} not found in library`);
   }
@@ -118,11 +181,18 @@ const EntityComponent: React.FC<{
       shape: { ...base.ui.shape, ...entity.ui.shape },
       title: { ...base.ui.title, ...entity.ui.title },
     }),
-    [base, entity]
+    [base.ui, entity.ui]
   );
+
+  const handleOnClick = React.useCallback(() => {
+    setSelected((selected) => (selected !== entity.title ? entity.title : ""));
+  }, [setSelected]);
 
   const handleOnDragMove = React.useCallback(
     (e: KonvaEventObject<DragEvent>) => {
+      if (selected !== entity.title) {
+        setSelected(entity.title);
+      }
       const pos = e.currentTarget.absolutePosition();
 
       const handle = (
@@ -158,60 +228,85 @@ const EntityComponent: React.FC<{
         })
       );
     },
-    [setConnections, ui, base, screenWidth, screenHeight, entity]
+    [
+      setConnections,
+      ui,
+      base,
+      screenWidth,
+      screenHeight,
+      entity,
+      selected,
+      setSelected,
+    ]
   );
 
+  const isSelected = selected === entity.title;
+  const shapeRef = React.useRef<Konva.Group>(null);
+
   return (
-    <Group
-      x={centerPaneX + 2 * innerBorderWidth + ui.shape.x}
-      y={ui.shape.y}
-      draggable
-      onDragMove={handleOnDragMove}
-    >
-      <Rect
-        width={ui.shape.width}
-        height={ui.shape.height}
-        stroke="red"
-        strokeEnabled
-        fill={
-          "transparent" in ui.shape && ui.shape.transparent
-            ? undefined
-            : ui.shape.color
-        }
-      />
-      <Text
-        text={entity.Type}
-        fontSize={ui.title.fontSize}
-        x={ui.title.x}
-        y={ui.title.y}
-        scaleX={ui.title.scaleX}
-        scaleY={ui.title.scaleY}
-        fill={ui.title.color}
-      />
-      <IOs
-        entity={entity}
-        ios={base.inputs}
-        mode="inputs"
-        ui={ui}
-        handleOnClickConnection={handleOnClickConnection}
-      />
-      <IOs
-        entity={entity}
-        ios={base.outputs}
-        mode="outputs"
-        ui={ui}
-        handleOnClickConnection={handleOnClickConnection}
-      />
-    </Group>
+    <>
+      <Group
+        ref={shapeRef}
+        x={centerPaneX + 2 * innerBorderWidth + ui.shape.x}
+        y={ui.shape.y}
+        draggable
+        onClick={handleOnClick}
+        onDragMove={handleOnDragMove}
+      >
+        <Rect
+          width={ui.shape.width}
+          height={ui.shape.height}
+          stroke="red"
+          strokeEnabled
+          fill={
+            "transparent" in ui.shape && ui.shape.transparent
+              ? undefined
+              : ui.shape.color
+          }
+        />
+        <Text
+          text={entity.Type}
+          fontSize={ui.title.fontSize}
+          x={ui.title.x}
+          y={ui.title.y}
+          scaleX={ui.title.scaleX}
+          scaleY={ui.title.scaleY}
+          fill={ui.title.color}
+        />
+        <IOs
+          entity={entity}
+          ios={base.inputs}
+          mode="inputs"
+          ui={ui}
+          handleOnClickConnection={handleOnClickConnection}
+        />
+        <IOs
+          entity={entity}
+          ios={base.outputs}
+          mode="outputs"
+          ui={ui}
+          handleOnClickConnection={handleOnClickConnection}
+        />
+      </Group>
+      {isSelected && (
+        <EntityTransformer
+          shapeRef={shapeRef}
+          isSelected={isSelected}
+          ui={ui}
+          title={entity.title}
+        />
+      )}
+    </>
   );
 };
 
 export const Entities: React.FC<{
   g: EntityInstance;
-  setConnections: (hdlr: (connections: Connection[]) => Connection[]) => void;
+  setConnections: React.Dispatch<React.SetStateAction<Connection[]>>;
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
 }> = ({ g, setConnections, handleOnClickConnection }) => {
   const [entities, setEntities] = React.useState(g.root.entities ?? []);
+  const [selected, setSelected] = React.useState("");
 
   React.useEffect(() => {
     setEntities(g.root.entities ?? []);
@@ -225,9 +320,11 @@ export const Entities: React.FC<{
           entity={entity}
           setConnections={setConnections}
           handleOnClickConnection={handleOnClickConnection}
+          selected={selected}
+          setSelected={setSelected}
         />
       )),
-    [entities, setConnections, handleOnClickConnection]
+    [entities, handleOnClickConnection, selected]
   );
 
   return <Group id="entities">{renderedEntities}</Group>;

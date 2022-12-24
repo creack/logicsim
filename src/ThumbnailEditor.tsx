@@ -230,22 +230,26 @@ export const ThumbnailEditor: React.FC<{
     () => ({
       title: baseTitle,
     }),
-    [baseTitle]
+    [baseTitle, ui]
   );
   React.useEffect(() => {
     setMenu({ title: baseTitle });
-  }, [setMenu, baseTitle]);
+  }, [setMenu, baseTitle, ui]);
 
   const { centerPaneX, centerPaneWidth, innerBorderWidth, sidePaneHeight } =
     React.useContext(PaneCtx);
-  const [shapeProps, setShapeProps] = React.useState<Konva.RectConfig>({
-    fill: "transparent" in ui.shape ? undefined : ui.shape.color,
-    width: ui.shape.width,
-    height: ui.shape.height,
-    x: ui.shape.x,
-    y: ui.shape.y,
-  });
+  const [shapeProps, setShapeProps] = React.useState<Konva.RectConfig>({});
   const [selected, setSelected] = React.useState<"" | "shape" | "title">("");
+
+  React.useEffect(() => {
+    setShapeProps({
+      fill: "transparent" in ui.shape ? undefined : ui.shape.color,
+      width: ui.shape.width,
+      height: ui.shape.height,
+      x: ui.shape.x,
+      y: ui.shape.y,
+    });
+  }, [ui.shape]);
 
   const handleOnShapeChange = React.useCallback(
     (e: Konva.RectConfig) => {

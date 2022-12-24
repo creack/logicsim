@@ -105,7 +105,7 @@ export class EntityInstance {
 
   constructor(
     root: Omit<Entity, "ui"> | undefined,
-    library: () => Omit<Entity, "ui">[],
+    lib: Omit<Entity, "ui">[],
     indent: number = 0
   ) {
     if (!root) {
@@ -113,11 +113,11 @@ export class EntityInstance {
     }
     this.root = root;
     this.entities = (this.root.entities ?? []).map((elem) => {
-      const ret = library().find((libEntry) => libEntry.Type === elem.Type);
+      const ret = lib.find((libEntry) => libEntry.Type === elem.Type);
       if (!ret) {
         throw new Error(`entity type '${elem.Type}' not found`);
       }
-      return new EntityInstance({ ...ret, ...elem }, library, indent + 1);
+      return new EntityInstance({ ...ret, ...elem }, lib, indent + 1);
     });
 
     this.root.connections?.forEach((connection) => {

@@ -1,3 +1,4 @@
+import React from "react";
 // import {
 //   RawEightSegmentsDisplay,
 //   SignedEigthSegmentsDisplay,
@@ -5,7 +6,7 @@
 // } from "./Components";
 import type { Entity } from "./entityInstance";
 
-export const library: () => Entity[] = () => [
+const library: () => Entity[] = () => [
   {
     Type: "nand",
     title: "nand",
@@ -4852,8 +4853,17 @@ export const library: () => Entity[] = () => [
 //   connections: [],
 // });
 
-export const baseLibrary = library();
+export const useLibrary = () => {
+  const lib = React.useMemo(() => library(), []);
 
-export const lookupLibrary = (Type: string): Entity | undefined => {
-  return baseLibrary.find((elem) => elem.Type === Type);
+  return lib;
+};
+
+export const useLookupLibrary = (Type: string): Entity | undefined => {
+  const lib = useLibrary();
+
+  return React.useMemo(
+    () => lib.find((elem) => elem.Type === Type),
+    [lib, Type]
+  );
 };
