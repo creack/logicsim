@@ -70,6 +70,13 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
               entities: parent.entities.filter(
                 (elem) => elem.title !== action.childTitle
               ),
+              connections: parent.connections.filter(
+                (elem) =>
+                  !(
+                    elem.From.title === action.childTitle ||
+                    elem.To.title === action.childTitle
+                  )
+              ),
             }
           : parent
       );
@@ -138,7 +145,7 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
                 (elem) =>
                   !(
                     formatEntity(elem.From) === formatEntity(action.From) &&
-                    formatEntity(elem.To) === formatEntity(action.To)
+                    formatEntity(elem.To) === formatEntity(action.To!)
                   )
               ),
             }
