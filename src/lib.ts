@@ -37,7 +37,7 @@ type actionTypes =
       type: "removeConnection";
       parentType: string;
       From: ConnectionIO;
-      To: ConnectionIO;
+      To?: ConnectionIO;
     }
   | {
       type: "updateIOPane";
@@ -45,6 +45,7 @@ type actionTypes =
       mode: "inputs" | "outputs";
       title: string;
       y: number;
+      action: "add" | "update" | "remove";
     };
 
 const reducer = (state: Entity[], action: actionTypes): Entity[] => {
@@ -120,6 +121,23 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
       );
 
     case "removeConnection":
+      if (!action.To) {
+        // If we don't have a "To", delete all connection that originate or target the "From".
+        return state.map((parent) =>
+          parent.Type === action.parentType
+            ? {
+                ...parent,
+                connections: parent.connections.filter(
+                  (elem) =>
+                    !(
+                      formatEntity(elem.From) === formatEntity(action.From) ||
+                      formatEntity(elem.To) === formatEntity(action.From)
+                    )
+                ),
+              }
+            : parent
+        );
+      }
       return state.map((parent) =>
         parent.Type === action.parentType
           ? {
@@ -139,18 +157,52 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
       if (!state.find((elem) => elem.Type === action.parentType)) {
         throw new Error(`parent target '${action.parentType}' not found`);
       }
-      return state.map((parent) =>
-        parent.Type === action.parentType
-          ? {
-              ...parent,
-              [action.mode]: [
-                ...parent[action.mode].map((elem) =>
-                  elem.title === action.title ? { ...elem, y: action.y } : elem
-                ),
-              ],
-            }
-          : parent
-      );
+      switch (action.action) {
+        case "add":
+          return state.map((parent) =>
+            parent.Type === action.parentType
+              ? {
+                  ...parent,
+                  [action.mode]: [
+                    ...parent[action.mode],
+                    { title: action.title, y: action.y },
+                  ],
+                }
+              : parent
+          );
+        case "remove":
+          return state.map((parent) =>
+            parent.Type === action.parentType
+              ? {
+                  ...parent,
+                  [action.mode]: [
+                    ...parent[action.mode].filter(
+                      (elem) => elem.title !== action.title
+                    ),
+                  ],
+                }
+              : parent
+          );
+        case "update":
+          return state.map((parent) =>
+            parent.Type === action.parentType
+              ? {
+                  ...parent,
+                  [action.mode]: [
+                    ...parent[action.mode].map((elem) =>
+                      elem.title === action.title
+                        ? { ...elem, y: action.y }
+                        : elem
+                    ),
+                  ],
+                }
+              : parent
+          );
+        default:
+          throw new Error(
+            `unknown updateIOPane action '${JSON.stringify(action)}'`
+          );
+      }
 
     default:
       throw new Error(

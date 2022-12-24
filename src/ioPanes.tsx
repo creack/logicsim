@@ -52,6 +52,7 @@ const IOElement: React.FC<{
       if (!title) return;
       dispatch({
         type: "updateIOPane",
+        action: "update",
         parentType,
         mode,
         title,
@@ -158,6 +159,27 @@ const IOElement: React.FC<{
     [onClickConnection, connectionRadius]
   );
 
+  const handleDblClick = React.useCallback(() => {
+    dispatch({
+      type: "removeConnection",
+      parentType,
+      From: {
+        Type: "root",
+        title: parentType,
+        subtype: mode,
+        subtitle: title!,
+      },
+    });
+    dispatch({
+      type: "updateIOPane",
+      action: "remove",
+      parentType,
+      mode,
+      title: title!,
+      y: 0,
+    });
+  }, [parentType, title, mode]);
+
   return (
     <Group
       x={x}
@@ -172,6 +194,7 @@ const IOElement: React.FC<{
         height={height}
         onMouseOver={handleDragOnMouseOver}
         onMouseOut={handleDragOnMouseOut}
+        onDblClick={handleDblClick}
       />
       <Line
         stroke="black"
@@ -334,6 +357,8 @@ export const IOPanes: React.FC<{
   outputs,
   setOutputs,
 }) => {
+  const dispatch = React.useContext(LibraryDispatchCtx);
+
   const setInputPos = React.useCallback(
     (title: string, newPos: number) => {
       setInputs((inputs) =>
@@ -358,21 +383,45 @@ export const IOPanes: React.FC<{
   );
   const addInput = React.useCallback(
     (pos: number) => {
-      setInputs((inputs) => [
-        ...inputs,
-        { title: (inputs.length + 1).toString(), value: false, y: pos },
-      ]);
+      setInputs((ios) => {
+        const newIO: IO = {
+          title: (ios.length + 1).toString(),
+          value: false,
+          y: pos,
+        };
+        dispatch({
+          type: "updateIOPane",
+          action: "add",
+          parentType,
+          mode: "inputs",
+          title: newIO.title,
+          y: newIO.y,
+        });
+        return [...ios, newIO];
+      });
     },
-    [setInputs]
+    [setInputs, parentType]
   );
   const addOutput = React.useCallback(
     (pos: number) => {
-      setOutputs((outputs) => [
-        ...outputs,
-        { title: (outputs.length + 1).toString(), value: false, y: pos },
-      ]);
+      setOutputs((ios) => {
+        const newIO: IO = {
+          title: (ios.length + 1).toString(),
+          value: false,
+          y: pos,
+        };
+        dispatch({
+          type: "updateIOPane",
+          action: "add",
+          parentType,
+          mode: "outputs",
+          title: newIO.title,
+          y: newIO.y,
+        });
+        return [...ios, newIO];
+      });
     },
-    [setOutputs]
+    [setOutputs, parentType]
   );
 
   return (
