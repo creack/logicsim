@@ -45,45 +45,52 @@ const IOElement: React.FC<{
   const toggleRadius = 10;
   const connectionRadius = toggleRadius / 2;
 
-  const handleDragMove = React.useCallback((e: KonvaEventObject<DragEvent>) => {
-    e.currentTarget.x(x);
-    e.currentTarget.y(e.currentTarget.y());
-
-    const pos = e.currentTarget.absolutePosition();
-
-    setConnections?.((connections) =>
-      (connections ?? []).map((elem) => {
-        if (
-          elem.From.Type === "" &&
-          elem.From.title === "" &&
-          elem.From.subtype === mode &&
-          elem.From.subtitle === title
-        ) {
-          elem.points.From[1] =
-            (pos.y + height / 2 - connectionRadius / 2) / screenHeight;
-        }
-        if (
-          elem.To.Type === "" &&
-          elem.To.title === "" &&
-          elem.To.subtype === mode &&
-          elem.To.subtitle === title
-        ) {
-          elem.points.To[1] =
-            (pos.y + height / 2 - connectionRadius / 2) / screenHeight;
-        }
-
-        return elem;
-      })
-    );
-  }, []);
-
-  const handleDragEnd = React.useCallback(
+  const handleDragMove = React.useCallback(
     (e: KonvaEventObject<DragEvent>) => {
+      e.currentTarget.x(x);
+      e.currentTarget.y(e.currentTarget.y());
+
+      const absPos = e.currentTarget.absolutePosition();
+
+      setConnections?.((connections) =>
+        (connections ?? []).map((elem) => {
+          if (
+            elem.From.Type === "" &&
+            elem.From.title === "" &&
+            elem.From.subtype === mode &&
+            elem.From.subtitle === title
+          ) {
+            elem.points.From[1] =
+              (absPos.y + height / 2 - connectionRadius / 2) / screenHeight;
+          }
+          if (
+            elem.To.Type === "" &&
+            elem.To.title === "" &&
+            elem.To.subtype === mode &&
+            elem.To.subtitle === title
+          ) {
+            elem.points.To[1] =
+              (absPos.y + height / 2 - connectionRadius / 2) / screenHeight;
+          }
+
+          return elem;
+        })
+      );
+
       if (setPos && title) {
         setPos(title, (e.currentTarget.y() + height / 2) / sidePaneHeight);
       }
     },
-    [setPos, title, height]
+    [
+      screenWidth,
+      screenHeight,
+      sidePaneHeight,
+      mode,
+      title,
+      connectionRadius,
+      height,
+      setPos,
+    ]
   );
 
   const handleDragOnMouseOver = React.useCallback(
@@ -141,7 +148,6 @@ const IOElement: React.FC<{
       ref={ref}
       draggable
       onDragMove={handleDragMove}
-      onDragEnd={handleDragEnd}
     >
       <Rect
         fill={color}
@@ -286,7 +292,6 @@ const IOPane: React.FC<{
           setConnections={setConnections}
         />
       ))}
-      <Text text="worl2d" />
     </Group>
   );
 };

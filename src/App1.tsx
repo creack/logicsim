@@ -4,24 +4,42 @@ import { Html } from "react-konva-utils";
 import { useConnections } from "./connections";
 import { useDrawConnections } from "./drawConnections";
 import { Entities } from "./Entities";
-import type { ConnectionIO } from "./entityInstance";
 import { EntityInstance } from "./entityInstance";
 import { useIOPanes } from "./ioPanes";
 import { baseLibrary, library } from "./lib";
 import { ThumbnailEditor } from "./ThumbnailEditor";
 import { ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from "./UI";
+import { useControls, button as levalButton } from "leva";
 
 const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
+  const [viewMode, setViewMode] = React.useState<"main" | "thumbnail">("main");
 
-  const g = React.useMemo(
-    () =>
-      new EntityInstance(
-        library().find((elem) => elem.Type === srcType),
-        library
+  useControls(
+    "View Mode",
+    () => ({
+      Main: levalButton(
+        () => {
+          setViewMode("main");
+        },
+        { disabled: viewMode === "main" }
       ),
-    [srcType]
+      Thumbnail: levalButton(
+        () => {
+          setViewMode("thumbnail");
+        },
+        { disabled: viewMode === "thumbnail" }
+      ),
+    }),
+    [viewMode, setViewMode]
   );
+
+  const { base, g } = React.useMemo(() => {
+    const base = library().find((elem) => elem.Type === srcType);
+    if (!base) throw new Error(`${srcType} not found in lib`);
+    const g = new EntityInstance(base, library);
+    return { base, g };
+  }, [srcType]);
 
   const {
     handleOnClick,
@@ -47,19 +65,27 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
     >
       <Rect width={screenWidth} height={screenHeight} />
 
-      {false && (
-        <Entities
-          g={g}
-          setConnections={setConnections}
-          handleOnClickConnection={handleOnClickConnection}
-        />
+      {viewMode === "main" && (
+        <>
+          <Entities
+            g={g}
+            setConnections={setConnections}
+            handleOnClickConnection={handleOnClickConnection}
+          />
+          {renderedDrawConnection}
+          {renderedConnections}
+        </>
       )}
-
-      {false && renderedDrawConnection}
-      {false && renderedConnections}
       {renderedIOPanes}
 
-      <ThumbnailEditor title={g.root.title} inputs={inputs} outputs={outputs} />
+      {viewMode === "thumbnail" && (
+        <ThumbnailEditor
+          ui={base.ui}
+          title={g.root.title}
+          inputs={inputs}
+          outputs={outputs}
+        />
+      )}
     </Group>
   );
 };

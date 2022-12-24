@@ -3,7 +3,7 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { useControls } from "leva";
 import React from "react";
 import { Circle, Group, Rect, Text, Transformer } from "react-konva";
-import type { IO } from "./entityInstance";
+import type { EntityUI, IO } from "./entityInstance";
 import { PaneCtx } from "./UI";
 
 const TextTransformer: React.FC<{
@@ -12,11 +12,19 @@ const TextTransformer: React.FC<{
   onSelect: () => void;
   x: number;
   y: number;
-}> = ({ text, isSelected = false, onSelect, x, y }) => {
-  const { fontSize, color } = useControls("Title Props", {
-    fontSize: { value: 26, min: 6, max: 72, step: 1 },
-    color: "#000000",
-  });
+  ui: EntityUI;
+}> = ({ text, isSelected = false, onSelect, x, y, ui }) => {
+  const [{ fontSize, color }, setMenu] = useControls(
+    "Title Props",
+    () => ({
+      fontSize: { value: 26, min: 6, max: 72, step: 1 },
+      color: "#000000",
+    }),
+    [ui.title]
+  );
+  React.useEffect(() => {
+    setMenu({ fontSize: ui.title.fontSize, color: ui.title.color });
+  }, [setMenu, ui.title]);
   const [pos, setPos] = React.useState({ x: 0, y: 0 });
 
   const shapeRef = React.useRef<Konva.Text>(null);
@@ -40,8 +48,9 @@ const TextTransformer: React.FC<{
         fontSize={fontSize}
         x={x + (pos.x ?? 0)}
         y={y + (pos.y ?? 0)}
-        draggable={isSelected}
+        draggable
         onClick={onSelect}
+        onDragStart={onSelect}
         onDragEnd={(e) => {
           setPos({
             x: e.target.x() - x,
@@ -65,14 +74,27 @@ const RectTransformer: React.FC<{
   isSelected: boolean;
   onSelect: () => void;
   onChange: (newProps: Konva.RectConfig) => void;
-}> = ({ shapeProps, isSelected, onChange, onSelect }) => {
-  const { transparent, color } = useControls("Shape Props", {
-    transparent: true,
-    color: {
-      value: "#ffffff",
-      render: (getValue) => !getValue("Shape Props.transparent"),
-    },
-  });
+  ui: EntityUI;
+}> = ({ shapeProps, isSelected, onChange, onSelect, ui }) => {
+  const [{ transparent, color }, setMenu] = useControls(
+    "Shape Props",
+    () => ({
+      transparent:
+        "transparent" in ui.shape && ui.shape.transparent ? true : false,
+      color: {
+        value: "color" in ui.shape && ui.shape.color ? ui.shape.color : "#ccc",
+        render: (getValue) => !getValue("Shape Props.transparent"),
+      },
+    }),
+    [ui.shape]
+  );
+  React.useEffect(() => {
+    setMenu({
+      transparent:
+        "transparent" in ui.shape && ui.shape.transparent ? true : false,
+      color: "color" in ui.shape && ui.shape.color ? ui.shape.color : "#ccc",
+    });
+  }, [ui.shape, setMenu]);
   const { centerPaneWidth, sidePaneHeight, innerBorderWidth } =
     React.useContext(PaneCtx);
 
@@ -175,7 +197,8 @@ const RectTransformer: React.FC<{
         stroke="black"
         strokeEnabled={transparent}
         onClick={onSelect}
-        draggable={isSelected}
+        draggable
+        onDragStart={onSelect}
         onDragMove={handleOnDragMove}
         onTransform={handleOnTransform}
       />
@@ -185,7 +208,7 @@ const RectTransformer: React.FC<{
           rotateEnabled={false}
           keepRatio={false}
           boundBoxFunc={(oldBox, newBox) => {
-            // limit resize
+            // Limit resize.
             if (newBox.width < 35 || newBox.height < 35) {
               return oldBox;
             }
@@ -199,27 +222,28 @@ const RectTransformer: React.FC<{
 
 export const ThumbnailEditor: React.FC<{
   title: string;
+  ui: EntityUI;
   inputs: IO[];
   outputs: IO[];
-}> = ({ title: baseTitle, inputs, outputs }) => {
-  const [{ title }, setTitle] = useControls(
+}> = ({ title: baseTitle, ui, inputs, outputs }) => {
+  const [{ title }, setMenu] = useControls(
     () => ({
       title: baseTitle,
     }),
     [baseTitle]
   );
   React.useEffect(() => {
-    setTitle({ title: baseTitle });
-  }, [setTitle, baseTitle]);
+    setMenu({ title: baseTitle });
+  }, [setMenu, baseTitle]);
 
-  const { centerPaneX, innerBorderWidth } = React.useContext(PaneCtx);
+  const { centerPaneX, centerPaneWidth, innerBorderWidth, sidePaneHeight } =
+    React.useContext(PaneCtx);
   const [shapeProps, setShapeProps] = React.useState<Konva.RectConfig>({
-    fill: "orange",
-    width: 800,
-    height: 400,
-    rotation: 0,
-    x: 0,
-    y: 0,
+    fill: "transparent" in ui.shape ? undefined : ui.shape.color,
+    width: ui.shape.width,
+    height: ui.shape.height,
+    x: ui.shape.x,
+    y: ui.shape.y,
   });
   const [selected, setSelected] = React.useState<"" | "shape" | "title">("");
 
@@ -234,13 +258,10 @@ export const ThumbnailEditor: React.FC<{
   return (
     <>
       <Group x={centerPaneX + innerBorderWidth * 2} y={innerBorderWidth * 2}>
-        <RectTransformer
-          shapeProps={shapeProps}
-          isSelected={selected === "shape"}
-          onSelect={() => {
-            setSelected("shape");
-          }}
-          onChange={handleOnShapeChange}
+        <Rect
+          width={centerPaneWidth}
+          height={sidePaneHeight}
+          onClick={() => setSelected("")}
         />
         {inputs.map((elem, i) => (
           <Circle
@@ -260,16 +281,17 @@ export const ThumbnailEditor: React.FC<{
             y={(shapeProps.y ?? 0) + (shapeProps.height ?? 0) * (elem.y ?? 0)}
           />
         ))}
-        <Text
-          x={0}
-          y={0}
-          width={780}
-          text={[
-            ...inputs.map((i) => `input ${i.title}: ${i.y}`),
-            ...outputs.map((i) => `output ${i.title}: ${i.y}`),
-          ].join("\n")}
+        <RectTransformer
+          shapeProps={shapeProps}
+          isSelected={selected === "shape"}
+          onSelect={() => {
+            setSelected("shape");
+          }}
+          onChange={handleOnShapeChange}
+          ui={ui}
         />
         <TextTransformer
+          ui={ui}
           x={shapeProps.x ?? 0}
           y={shapeProps.y ?? 0}
           text={title}
