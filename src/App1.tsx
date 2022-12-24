@@ -10,16 +10,17 @@ import { useIOPanes } from "./ioPanes";
 import {
   LibraryCtx,
   LibraryDispatchCtx,
+  useLibrary,
   useLibraryReducer,
   useLookupLibrary,
-} from "./lib";
+} from "./reducer";
 import { ThumbnailEditor } from "./ThumbnailEditor";
 import { ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from "./UI";
 
 const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const [viewMode, setViewMode] = React.useState<"main" | "thumbnail">("main");
-  const lib = React.useContext(LibraryCtx);
+  const lib = useLibrary();
 
   useControls(
     "View Mode",
@@ -111,7 +112,7 @@ const Footer: React.FC<{
   setSrcType: React.Dispatch<React.SetStateAction<string>>;
 }> = ({ setSrcType }) => {
   const { screenWidth } = React.useContext(ScreenCtx);
-  const lib = React.useContext(LibraryCtx);
+  const lib = useLibrary();
 
   const types = React.useMemo(() => lib.map((elem) => elem.Type), [lib]);
 

@@ -12,7 +12,7 @@ import type {
   PartialEntityUI,
 } from "./entityInstance";
 import { EntityInstance, formatEntity } from "./entityInstance";
-import { LibraryDispatchCtx, useLookupLibrary } from "./lib";
+import { useLibraryDispatch, useLookupLibrary } from "./reducer";
 import { PaneCtx, ScreenCtx } from "./UI";
 
 const IOComponent: React.FC<{
@@ -103,7 +103,7 @@ const EntityTransformer: React.FC<{
   isSelected: boolean;
   parentType: string;
 }> = ({ shapeRef, ui, isSelected, parentType, title }) => {
-  const dispatch = React.useContext(LibraryDispatchCtx);
+  const dispatch = useLibraryDispatch();
 
   //  const [{ transparent, color }, setMenu] =
   const [, setMenu] = useControls(
@@ -184,7 +184,7 @@ const EntityComponent: React.FC<{
     sidePaneHeight,
     innerBorderWidth,
   } = React.useContext(PaneCtx);
-  const dispatch = React.useContext(LibraryDispatchCtx);
+  const dispatch = useLibraryDispatch();
 
   const base = useLookupLibrary(entity.Type);
   if (!base) {

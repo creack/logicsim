@@ -7,7 +7,7 @@ import type {
   EntityInstance,
   IO,
 } from "./entityInstance";
-import { LibraryDispatchCtx } from "./lib";
+import { useLibraryDispatch } from "./reducer";
 import { PaneCtx, ScreenCtx } from "./UI";
 
 const IOElement: React.FC<{
@@ -36,7 +36,7 @@ const IOElement: React.FC<{
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const { centerPaneX, outerBorderWidth, sidePaneHeight } =
     React.useContext(PaneCtx);
-  const dispatch = React.useContext(LibraryDispatchCtx);
+  const dispatch = useLibraryDispatch();
 
   const width = paneWidth * 0.6;
   const x =
@@ -357,7 +357,7 @@ export const IOPanes: React.FC<{
   outputs,
   setOutputs,
 }) => {
-  const dispatch = React.useContext(LibraryDispatchCtx);
+  const dispatch = useLibraryDispatch();
 
   const setInputPos = React.useCallback(
     (title: string, newPos: number) => {

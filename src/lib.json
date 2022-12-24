@@ -1,0 +1,258 @@
+[
+  {
+    "Type": "nand",
+    "title": "nand",
+    "inputs": [
+      {
+        "title": "nandIn0",
+        "y": 0.28
+      },
+      {
+        "title": "nandIn1",
+        "y": 0.72
+      }
+    ],
+    "outputs": [
+      {
+        "title": "nandOut0",
+        "y": 0.5
+      }
+    ],
+    "entities": [],
+    "connections": [],
+    "ui": {
+      "pins": {
+        "radius": 5
+      },
+      "shape": {
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 50,
+        "color": "purple"
+      },
+      "title": {
+        "x": 0,
+        "y": 0,
+        "fontSize": 28,
+        "scaleX": 1,
+        "scaleY": 1,
+        "color": "#fff"
+      }
+    }
+  },
+  {
+    "Type": "not",
+    "title": "not",
+    "ui": {
+      "pins": {
+        "radius": 5
+      },
+      "shape": {
+        "x": 0,
+        "y": 0,
+        "width": 90,
+        "height": 30,
+        "transparent": false,
+        "color": "#ff0000"
+      },
+      "title": {
+        "x": 0,
+        "y": 0,
+        "fontSize": 28,
+        "color": "#ffffff",
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    "inputs": [
+      {
+        "title": "0",
+        "y": 0.5
+      }
+    ],
+    "outputs": [
+      {
+        "title": "0",
+        "y": 0.5
+      }
+    ],
+    "entities": [
+      {
+        "Type": "nand",
+        "title": "nand1",
+        "ui": {
+          "shape": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      }
+    ],
+    "connections": []
+  },
+  {
+    "Type": "and",
+    "title": "and",
+    "ui": {
+      "pins": {
+        "radius": 5
+      },
+      "shape": {
+        "x": 10,
+        "y": 10,
+        "width": 300,
+        "height": 120,
+        "transparent": true
+      },
+      "title": {
+        "x": 30,
+        "y": 40,
+        "fontSize": 28,
+        "color": "#000",
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    "inputs": [
+      {
+        "title": "andIn0",
+        "y": 0.28
+      },
+      {
+        "title": "andIn1",
+        "y": 0.72
+      }
+    ],
+    "outputs": [
+      {
+        "title": "andOut0",
+        "y": 0.5
+      }
+    ],
+    "entities": [
+      {
+        "Type": "nand",
+        "title": "nand0",
+        "ui": {
+          "shape": {
+            "x": 0.3,
+            "y": 0.47
+          }
+        }
+      },
+      {
+        "Type": "not",
+        "title": "not0",
+        "ui": {
+          "shape": {
+            "x": 0.7,
+            "y": 0.47
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "From": {
+          "Type": "root",
+          "title": "and",
+          "subtype": "inputs",
+          "subtitle": "0"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.32379444444444444
+          ],
+          "To": [
+            0.322025,
+            0.4974555555555555
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "To": {
+          "Type": "root",
+          "title": "and",
+          "subtype": "inputs",
+          "subtitle": "andIn1"
+        },
+        "points": {
+          "From": [
+            0.322025,
+            0.528011111111111
+          ],
+          "To": [
+            0.060531250000000016,
+            0.6809277777777777
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "not0",
+          "subtype": "inputs",
+          "subtitle": "0"
+        },
+        "points": {
+          "From": [
+            0.40015,
+            0.5127333333333333
+          ],
+          "To": [
+            0.6892249999999999,
+            0.49884444444444437
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "not0",
+          "subtype": "outputs",
+          "subtitle": "0"
+        },
+        "To": {
+          "Type": "root",
+          "title": "and",
+          "subtype": "outputs",
+          "subtitle": "0"
+        },
+        "points": {
+          "From": [
+            0.7595374999999999,
+            0.49884444444444437
+          ],
+          "To": [
+            0.93946875,
+            0.5023611111111111
+          ],
+          "intermediaries": []
+        }
+      }
+    ]
+  }
+]
