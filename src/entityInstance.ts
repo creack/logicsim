@@ -34,8 +34,10 @@ export type EntityUI = {
   } & (
     | {
         transparent: true;
+        color?: string;
       }
     | {
+        transparent?: false;
         color: string;
       }
   );

@@ -102,7 +102,8 @@ const EntityTransformer: React.FC<{
   ui: EntityUI;
   isSelected: boolean;
 }> = ({ shapeRef, ui, isSelected, title }) => {
-  const [{ transparent, color }, setMenu] = useControls(
+  //  const [{ transparent, color }, setMenu] =
+  const [, setMenu] = useControls(
     `Entity ${title} Props:`,
     () => ({
       transparent:
@@ -176,11 +177,12 @@ const EntityComponent: React.FC<{
   }
 
   const ui = React.useMemo(
-    () => ({
-      pins: { ...base.ui.pins, ...entity.ui.pins },
-      shape: { ...base.ui.shape, ...entity.ui.shape },
-      title: { ...base.ui.title, ...entity.ui.title },
-    }),
+    () =>
+      ({
+        pins: { ...base.ui.pins, ...entity.ui.pins },
+        shape: { ...base.ui.shape, ...entity.ui.shape },
+        title: { ...base.ui.title, ...entity.ui.title },
+      } as EntityUI),
     [base.ui, entity.ui]
   );
 

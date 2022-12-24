@@ -1,3 +1,4 @@
+import { button as levalButton, useControls } from "leva";
 import React from "react";
 import { Group, Layer, Rect, Stage, Text } from "react-konva";
 import { Html } from "react-konva-utils";
@@ -6,15 +7,14 @@ import { useDrawConnections } from "./drawConnections";
 import { Entities } from "./Entities";
 import { EntityInstance } from "./entityInstance";
 import { useIOPanes } from "./ioPanes";
-import { useLookupLibrary, useLibrary } from "./lib";
+import { LibraryCtx, useLibraryReducer, useLookupLibrary } from "./lib";
 import { ThumbnailEditor } from "./ThumbnailEditor";
 import { ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from "./UI";
-import { useControls, button as levalButton } from "leva";
 
 const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const [viewMode, setViewMode] = React.useState<"main" | "thumbnail">("main");
-  const lib = useLibrary();
+  const lib = React.useContext(LibraryCtx);
 
   useControls(
     "View Mode",
@@ -107,45 +107,54 @@ export const App1 = () => {
   const screenHeight = 720;
 
   const [srcType, setSrcType] = React.useState("and");
-  const lib = useLibrary();
+
+  const [lib, dispatch] = useLibraryReducer();
+
+  useControls({
+    Save: levalButton(() => {
+      dispatch({ type: "save" });
+    }),
+  });
 
   return (
-    <ScreenCtx.Provider value={{ screenWidth, screenHeight }}>
-      <Stage width={screenWidth} height={screenHeight}>
-        <Layer>
-          <UILayoutHeader>
-            <Text text="hello" />
-          </UILayoutHeader>
-          <UILayoutFooter>
-            <Html>
-              <div
-                style={{
-                  width: screenWidth,
-                  maxWidth: screenWidth,
-                  display: "flex",
-                  justifyContent: "center",
-                  flexWrap: "wrap",
-                }}
-              >
-                {lib.map((elem, i) => (
-                  <button
-                    key={i}
-                    style={{ marginLeft: 1, marginRight: 1 }}
-                    onClick={() => {
-                      setSrcType(elem.Type);
-                    }}
-                  >
-                    {elem.Type}
-                  </button>
-                ))}
-              </div>
-            </Html>
-          </UILayoutFooter>
-          <UILayoutMain>
-            <Main srcType={srcType} />
-          </UILayoutMain>
-        </Layer>
-      </Stage>
-    </ScreenCtx.Provider>
+    <LibraryCtx.Provider value={lib}>
+      <ScreenCtx.Provider value={{ screenWidth, screenHeight }}>
+        <Stage width={screenWidth} height={screenHeight}>
+          <Layer>
+            <UILayoutHeader>
+              <Text text="hello" />
+            </UILayoutHeader>
+            <UILayoutFooter>
+              <Html>
+                <div
+                  style={{
+                    width: screenWidth,
+                    maxWidth: screenWidth,
+                    display: "flex",
+                    justifyContent: "center",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {lib.map((elem, i) => (
+                    <button
+                      key={i}
+                      style={{ marginLeft: 1, marginRight: 1 }}
+                      onClick={() => {
+                        setSrcType(elem.Type);
+                      }}
+                    >
+                      {elem.Type}
+                    </button>
+                  ))}
+                </div>
+              </Html>
+            </UILayoutFooter>
+            <UILayoutMain>
+              <Main srcType={srcType} />
+            </UILayoutMain>
+          </Layer>
+        </Stage>
+      </ScreenCtx.Provider>
+    </LibraryCtx.Provider>
   );
 };
