@@ -174,11 +174,18 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
             parent.Type === action.parentType
               ? {
                   ...parent,
-                  [action.mode]: [
-                    ...parent[action.mode].filter(
-                      (elem) => elem.title !== action.title
-                    ),
-                  ],
+                  [action.mode]: parent[action.mode].filter(
+                    (elem) => elem.title !== action.title
+                  ),
+                  connections: parent.connections.filter(
+                    (elem) =>
+                      !(
+                        (elem.From.Type === "root" &&
+                          elem.From.subtitle === action.title) ||
+                        (elem.To.Type === "root" &&
+                          elem.To.subtitle === action.title)
+                      )
+                  ),
                 }
               : parent
           );

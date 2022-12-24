@@ -1,6 +1,6 @@
 import type { KonvaEventObject } from "konva/lib/Node";
 import React from "react";
-import { Circle, Group, Line, Rect } from "react-konva";
+import { Circle, Group, Line, Rect, Text, Label, Tag } from "react-konva";
 import type {
   Connection,
   ConnectionIO,
@@ -156,20 +156,10 @@ const IOElement: React.FC<{
         pos.y - connectionRadius / 2
       );
     },
-    [onClickConnection, connectionRadius]
+    [title, onClickConnection, connectionRadius]
   );
 
   const handleDblClick = React.useCallback(() => {
-    dispatch({
-      type: "removeConnection",
-      parentType,
-      From: {
-        Type: "root",
-        title: parentType,
-        subtype: mode,
-        subtitle: title!,
-      },
-    });
     dispatch({
       type: "updateIOPane",
       action: "remove",
@@ -233,6 +223,24 @@ const IOElement: React.FC<{
         onMouseOut={handleConnectionOnMouseOut}
         onClick={handleConnectionOnClick}
       />
+      <Label
+        x={
+          mode === "inputs"
+            ? centerPaneX - x + toggleRadius * 2.5
+            : -(paneWidth - width) / 2 - outerBorderWidth - toggleRadius * 2.5
+        }
+        y={height / 2 - 5}
+        opacity={0.75}
+      >
+        <Tag
+          fill="black"
+          pointerDirection="down"
+          pointerWidth={5}
+          pointerHeight={5}
+          lineJoin="round"
+        />
+        <Text fontSize={8} fill="white" text={title ?? "?"} />
+      </Label>
     </Group>
   );
 };
