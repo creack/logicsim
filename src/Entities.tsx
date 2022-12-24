@@ -1,6 +1,6 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
-import { useControls } from "leva";
+import { button, useControls } from "leva";
 import React from "react";
 import { Circle, Group, Rect, Text, Transformer } from "react-konva";
 import type {
@@ -12,7 +12,7 @@ import type {
   PartialEntityUI,
 } from "./entityInstance";
 import { EntityInstance, formatEntity } from "./entityInstance";
-import { useLookupLibrary } from "./lib";
+import { LibraryDispatchCtx, useLookupLibrary } from "./lib";
 import { PaneCtx, ScreenCtx } from "./UI";
 
 const IOComponent: React.FC<{
@@ -101,7 +101,10 @@ const EntityTransformer: React.FC<{
   shapeRef: React.RefObject<Konva.Group>;
   ui: EntityUI;
   isSelected: boolean;
-}> = ({ shapeRef, ui, isSelected, title }) => {
+  parentType: string;
+}> = ({ shapeRef, ui, isSelected, parentType, title }) => {
+  const dispatch = React.useContext(LibraryDispatchCtx);
+
   //  const [{ transparent, color }, setMenu] =
   const [, setMenu] = useControls(
     `Entity ${title} Props:`,
@@ -112,8 +115,11 @@ const EntityTransformer: React.FC<{
         value: "color" in ui.shape && ui.shape.color ? ui.shape.color : "#ccc",
         render: (getValue) => !getValue("Shape Props.transparent"),
       },
+      remove: button(() => {
+        dispatch({ type: "removeChildEntity", parentType, childTitle: title });
+      }),
     }),
-    [ui.shape]
+    [ui.shape, title, parentType]
   );
   React.useEffect(() => {
     setMenu({
@@ -161,15 +167,24 @@ const EntityComponent: React.FC<{
   setConnections: React.Dispatch<React.SetStateAction<Connection[]>>;
   setSelected: React.Dispatch<React.SetStateAction<string>>;
   selected: string;
+  parentType: string;
 }> = ({
   entity,
   setConnections,
   handleOnClickConnection,
   setSelected,
   selected,
+  parentType,
 }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
-  const { centerPaneX, innerBorderWidth } = React.useContext(PaneCtx);
+  const {
+    centerPaneX,
+    centerPaneY,
+    centerPaneWidth,
+    sidePaneHeight,
+    innerBorderWidth,
+  } = React.useContext(PaneCtx);
+  const dispatch = React.useContext(LibraryDispatchCtx);
 
   const base = useLookupLibrary(entity.Type);
   if (!base) {
@@ -186,22 +201,55 @@ const EntityComponent: React.FC<{
     [base.ui, entity.ui]
   );
 
-  const handleOnClick = React.useCallback(() => {
-    setSelected((selected) => (selected !== entity.title ? entity.title : ""));
-  }, [setSelected]);
+  const handleOnClick = React.useCallback(
+    (e: KonvaEventObject<MouseEvent>) => {
+      e.cancelBubble = true;
+      setSelected((selected) =>
+        selected !== entity.title ? entity.title : ""
+      );
+    },
+    [setSelected]
+  );
+
+  const handleOnDragEnd = React.useCallback(
+    (e: KonvaEventObject<DragEvent>) => {
+      const pos = e.currentTarget.position();
+
+      // Update the entity coordinates.
+      dispatch({
+        type: "updateChildEntityCoordinates",
+        parentType,
+        childTitle: entity.title,
+        x: (pos.x - (centerPaneX + 2 * innerBorderWidth)) / centerPaneWidth,
+        y: pos.y / sidePaneHeight,
+      });
+    },
+    [
+      parentType,
+      entity.Type,
+      entity.title,
+      centerPaneWidth,
+      sidePaneHeight,
+      centerPaneX,
+      centerPaneY,
+      innerBorderWidth,
+    ]
+  );
 
   const handleOnDragMove = React.useCallback(
     (e: KonvaEventObject<DragEvent>) => {
+      // Select the entity if it was not already selected.
       if (selected !== entity.title) {
         setSelected(entity.title);
       }
-      const pos = e.currentTarget.absolutePosition();
 
+      // Update connections.
+      const pos = e.currentTarget.absolutePosition();
       const handle = (
         targetIO: ConnectionIO,
         targetPoints: [number, number]
       ) => {
-        if (targetIO.Type === entity.Type && targetIO.title === entity.title) {
+        if (targetIO.Type === "entity" && targetIO.title === entity.title) {
           targetPoints[0] =
             targetIO.subtype === "inputs"
               ? pos.x / screenWidth
@@ -249,11 +297,12 @@ const EntityComponent: React.FC<{
     <>
       <Group
         ref={shapeRef}
-        x={centerPaneX + 2 * innerBorderWidth + ui.shape.x}
-        y={ui.shape.y}
+        x={centerPaneX + 2 * innerBorderWidth + ui.shape.x * centerPaneWidth}
+        y={ui.shape.y * sidePaneHeight}
         draggable
         onClick={handleOnClick}
         onDragMove={handleOnDragMove}
+        onDragEnd={handleOnDragEnd}
       >
         <Rect
           width={ui.shape.width}
@@ -296,6 +345,7 @@ const EntityComponent: React.FC<{
           isSelected={isSelected}
           ui={ui}
           title={entity.title}
+          parentType={parentType}
         />
       )}
     </>
@@ -324,9 +374,10 @@ export const Entities: React.FC<{
           handleOnClickConnection={handleOnClickConnection}
           selected={selected}
           setSelected={setSelected}
+          parentType={g.root.Type}
         />
       )),
-    [entities, handleOnClickConnection, selected]
+    [entities, handleOnClickConnection, selected, g.root.Type, g.root.title]
   );
 
   return <Group id="entities">{renderedEntities}</Group>;

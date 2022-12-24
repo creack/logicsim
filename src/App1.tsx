@@ -7,7 +7,12 @@ import { useDrawConnections } from "./drawConnections";
 import { Entities } from "./Entities";
 import { EntityInstance } from "./entityInstance";
 import { useIOPanes } from "./ioPanes";
-import { LibraryCtx, useLibraryReducer, useLookupLibrary } from "./lib";
+import {
+  LibraryCtx,
+  LibraryDispatchCtx,
+  useLibraryReducer,
+  useLookupLibrary,
+} from "./lib";
 import { ThumbnailEditor } from "./ThumbnailEditor";
 import { ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from "./UI";
 
@@ -102,7 +107,45 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
   );
 };
 
-export const App1 = () => {
+const Footer: React.FC<{
+  setSrcType: React.Dispatch<React.SetStateAction<string>>;
+}> = ({ setSrcType }) => {
+  const { screenWidth } = React.useContext(ScreenCtx);
+  const lib = React.useContext(LibraryCtx);
+
+  const types = React.useMemo(() => lib.map((elem) => elem.Type), [lib]);
+
+  return React.useMemo(
+    () => (
+      <Html>
+        <div
+          style={{
+            width: screenWidth,
+            maxWidth: screenWidth,
+            display: "flex",
+            justifyContent: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          {types.map((elem, i) => (
+            <button
+              key={i}
+              style={{ marginLeft: 1, marginRight: 1 }}
+              onClick={() => {
+                setSrcType(elem);
+              }}
+            >
+              {elem}
+            </button>
+          ))}
+        </div>
+      </Html>
+    ),
+    [JSON.stringify(types)]
+  );
+};
+
+export const App1: React.FC = () => {
   const screenWidth = 1280;
   const screenHeight = 720;
 
@@ -117,44 +160,24 @@ export const App1 = () => {
   });
 
   return (
-    <LibraryCtx.Provider value={lib}>
-      <ScreenCtx.Provider value={{ screenWidth, screenHeight }}>
-        <Stage width={screenWidth} height={screenHeight}>
-          <Layer>
-            <UILayoutHeader>
-              <Text text="hello" />
-            </UILayoutHeader>
-            <UILayoutFooter>
-              <Html>
-                <div
-                  style={{
-                    width: screenWidth,
-                    maxWidth: screenWidth,
-                    display: "flex",
-                    justifyContent: "center",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {lib.map((elem, i) => (
-                    <button
-                      key={i}
-                      style={{ marginLeft: 1, marginRight: 1 }}
-                      onClick={() => {
-                        setSrcType(elem.Type);
-                      }}
-                    >
-                      {elem.Type}
-                    </button>
-                  ))}
-                </div>
-              </Html>
-            </UILayoutFooter>
-            <UILayoutMain>
-              <Main srcType={srcType} />
-            </UILayoutMain>
-          </Layer>
-        </Stage>
-      </ScreenCtx.Provider>
-    </LibraryCtx.Provider>
+    <LibraryDispatchCtx.Provider value={dispatch}>
+      <LibraryCtx.Provider value={lib}>
+        <ScreenCtx.Provider value={{ screenWidth, screenHeight }}>
+          <Stage width={screenWidth} height={screenHeight}>
+            <Layer>
+              <UILayoutHeader>
+                <Text text="hello" />
+              </UILayoutHeader>
+              <UILayoutFooter>
+                <Footer setSrcType={setSrcType} />
+              </UILayoutFooter>
+              <UILayoutMain>
+                <Main srcType={srcType} />
+              </UILayoutMain>
+            </Layer>
+          </Stage>
+        </ScreenCtx.Provider>
+      </LibraryCtx.Provider>
+    </LibraryDispatchCtx.Provider>
   );
 };

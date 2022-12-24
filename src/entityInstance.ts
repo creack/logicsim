@@ -189,7 +189,7 @@ export class EntityInstance {
         });
         return;
       }
-      throw new Error(`unknown connection from type ${connection.From.Type}`);
+      throw new Error(`unknown connection from type '${connection.From.Type}'`);
     });
   }
 

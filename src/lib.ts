@@ -4,18 +4,143 @@ import React from "react";
 //   SignedEigthSegmentsDisplay,
 //   ThreeDigitDecimalDisplay,
 // } from "./Components";
-import type { Entity } from "./entityInstance";
+import {
+  Connection,
+  ConnectionIO,
+  Entity,
+  formatEntity,
+} from "./entityInstance";
 
-type actionTypes = { type: "save" };
+type actionTypes =
+  | { type: "save" }
+  | {
+      type: "updateChildEntityCoordinates";
+      parentType: string;
+      childTitle: string;
+      x: number;
+      y: number;
+    }
+  | {
+      type: "removeChildEntity";
+      parentType: string;
+      childTitle: string;
+    }
+  | {
+      type: "addConnection";
+      parentType: string;
+      From: ConnectionIO;
+      To: ConnectionIO;
+      points: Connection["points"];
+    }
+  | {
+      type: "removeConnection";
+      parentType: string;
+      From: ConnectionIO;
+      To: ConnectionIO;
+    };
 
 const reducer = (state: Entity[], action: actionTypes): Entity[] => {
   switch (action.type) {
     case "save":
       localStorage.setItem("library", JSON.stringify(state));
       return state;
+    case "updateChildEntityCoordinates":
+      const { childTarget } = lookupChildTarget(state, action);
+      if (!childTarget.ui.shape) {
+        childTarget.ui.shape = {};
+      }
+      childTarget.ui.shape.x = action.x;
+      childTarget.ui.shape.y = action.y;
+      return state;
+    case "removeChildEntity":
+      lookupChildTarget(state, action); // Throws if parent of child is missing.
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              entities: parent.entities.filter(
+                (elem) => elem.title !== action.childTitle
+              ),
+            }
+          : parent
+      );
+    case "addConnection":
+      console.warn(">>>", action);
+      if (!state.find((elem) => elem.Type === action.parentType)) {
+        throw new Error(`parent target '${action.parentType}' not found`);
+      }
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              connections: [
+                ...parent.connections.filter(
+                  (elem) =>
+                    !(
+                      formatEntity(elem.From) === formatEntity(action.From) &&
+                      formatEntity(elem.To) === formatEntity(action.To)
+                    )
+                ),
+                {
+                  From: { ...action.From },
+                  To: { ...action.To },
+                  points: {
+                    From: [...action.points.From],
+                    To: [...action.points.To],
+                    intermediaries: [
+                      ...action.points.intermediaries.map(
+                        (elem) => [...elem] as [number, number]
+                      ),
+                    ],
+                  },
+                },
+              ],
+            }
+          : parent
+      );
+    case "removeConnection":
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              connections: parent.connections.filter(
+                (elem) =>
+                  !(
+                    formatEntity(elem.From) === formatEntity(action.From) &&
+                    formatEntity(elem.To) === formatEntity(action.To)
+                  )
+              ),
+            }
+          : parent
+      );
     default:
-      throw new Error();
+      throw new Error(
+        `unknown redurer action type '${JSON.stringify(action)}'`
+      );
   }
+};
+
+const lookupChildTarget = (
+  state: Entity[],
+  action: {
+    parentType: string;
+    childTitle: string;
+  }
+) => {
+  const parentTarget = state.find((elem) => elem.Type === action.parentType);
+  if (!parentTarget) {
+    throw new Error(`parent target '${action.parentType}' not found`);
+  }
+  const childTarget = parentTarget.entities.find(
+    (elem) => elem.title === action.childTitle
+  );
+  if (!childTarget) {
+    console.warn({ parentTarget });
+    throw new Error(
+      `child target '${action.childTitle}' in '${action.parentType}' not found`
+    );
+  }
+  return { parentTarget, childTarget };
 };
 
 export const useLibraryReducer = () => React.useReducer(reducer, library());
