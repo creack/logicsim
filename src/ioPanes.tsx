@@ -1,12 +1,13 @@
 import type { KonvaEventObject } from "konva/lib/Node";
 import React from "react";
-import { Circle, Group, Line, Rect, Text, Label, Tag } from "react-konva";
+import { Circle, Group, Line, Rect } from "react-konva";
 import type {
   Connection,
   ConnectionIO,
   EntityInstance,
   IO,
 } from "./entityInstance";
+import { LogicLabel } from "./Label";
 import { useLibraryDispatch } from "./reducer";
 import { PaneCtx, ScreenCtx } from "./UI";
 
@@ -223,7 +224,7 @@ const IOElement: React.FC<{
         onMouseOut={handleConnectionOnMouseOut}
         onClick={handleConnectionOnClick}
       />
-      <Label
+      <LogicLabel
         x={
           mode === "inputs"
             ? centerPaneX - x + toggleRadius * 2.5
@@ -231,16 +232,12 @@ const IOElement: React.FC<{
         }
         y={height / 2 - 5}
         opacity={0.75}
-      >
-        <Tag
-          fill="black"
-          pointerDirection="down"
-          pointerWidth={5}
-          pointerHeight={5}
-          lineJoin="round"
-        />
-        <Text fontSize={8} fill="white" text={title ?? "?"} />
-      </Label>
+        pointerDirection="down"
+        pointerWidth={5}
+        pointerHeight={5}
+        fontSize={8}
+        text={title ?? "?"}
+      />
     </Group>
   );
 };

@@ -1,26 +1,67 @@
-import { button as levalButton, useControls } from "leva";
+import { button as levalButton, LevaInputs, useControls } from "leva";
 import React from "react";
 import { Group, Layer, Rect, Stage, Text } from "react-konva";
-import { Html } from "react-konva-utils";
 import { useConnections } from "./connections";
 import { useDrawConnections } from "./drawConnections";
 import { Entities } from "./Entities";
 import { EntityInstance } from "./entityInstance";
 import { useIOPanes } from "./ioPanes";
+import { LogicLabel } from "./Label";
 import {
   LibraryCtx,
   LibraryDispatchCtx,
   useLibrary,
+  useLibraryDispatch,
   useLibraryReducer,
   useLookupLibrary,
 } from "./reducer";
 import { ThumbnailEditor } from "./ThumbnailEditor";
-import { ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from "./UI";
+import {
+  PaneCtx,
+  ScreenCtx,
+  UILayoutFooter,
+  UILayoutHeader,
+  UILayoutMain,
+} from "./UI";
 
-const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
+const Main: React.FC<{
+  srcType: string;
+  setSrcType: (newSrcType: string) => void;
+}> = ({ srcType, setSrcType }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const [viewMode, setViewMode] = React.useState<"main" | "thumbnail">("main");
-  const lib = useLibrary();
+  const {
+    centerPaneX,
+    centerPaneWidth,
+    innerBorderWidth,
+    outerBorderWidth,
+    sidePaneHeight,
+  } = React.useContext(PaneCtx);
+
+  const dispatch = useLibraryDispatch();
+
+  const [{ Title: title }, setMenu] = useControls(
+    "Settings",
+    () => ({
+      Title: {
+        value: srcType,
+        type: LevaInputs.STRING,
+        order: -1,
+        onEditEnd: (newTitle: string) => {
+          dispatch({
+            type: "updateRootTitle",
+            parentType: srcType,
+            title: newTitle,
+          });
+          setSrcType(newTitle);
+        },
+      },
+    }),
+    [srcType]
+  );
+  React.useEffect(() => {
+    setMenu({ Title: srcType });
+  }, [srcType]);
 
   useControls(
     "View Mode",
@@ -41,23 +82,12 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
     [viewMode, setViewMode]
   );
 
+  const lib = useLibrary();
   const base = useLookupLibrary(srcType);
   const g = React.useMemo(() => {
     if (!base) throw new Error(`${srcType} not found in lib`);
     return new EntityInstance(base, lib);
   }, [base, srcType, lib]);
-
-  React.useEffect(() => {
-    console.log("G Changed:", g);
-  }, [g]);
-
-  React.useEffect(() => {
-    console.log("srcType Changed:", srcType);
-  }, [srcType]);
-
-  React.useEffect(() => {
-    console.log("Base ui Changed:", base!.ui);
-  }, [base!.ui]);
 
   const {
     handleOnClick,
@@ -81,7 +111,18 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
       onMouseMove={handleOnMouseMove}
       onClick={handleOnClick}
     >
-      <Rect width={screenWidth} height={screenHeight} />
+      <LogicLabel
+        x={centerPaneX + centerPaneWidth / 2.1}
+        y={-innerBorderWidth - outerBorderWidth}
+        fontSize={outerBorderWidth}
+        text={title}
+      />
+      <Rect
+        x={centerPaneX}
+        y={0}
+        width={centerPaneWidth}
+        height={sidePaneHeight}
+      />
 
       {viewMode === "main" && (
         <>
@@ -99,7 +140,7 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
       {viewMode === "thumbnail" && (
         <ThumbnailEditor
           ui={{ ...base!.ui }}
-          title={g.root.title}
+          title={title}
           inputs={inputs}
           outputs={outputs}
         />
@@ -108,41 +149,92 @@ const Main: React.FC<{ srcType: string }> = ({ srcType }) => {
   );
 };
 
-const Footer: React.FC<{
-  setSrcType: React.Dispatch<React.SetStateAction<string>>;
-}> = ({ setSrcType }) => {
+const Header: React.FC<{
+  srcType: string;
+  setSrcType: (newSrcType: string) => void;
+}> = ({ srcType, setSrcType }) => {
   const { screenWidth } = React.useContext(ScreenCtx);
-  const lib = useLibrary();
 
+  const dispatch = useLibraryDispatch();
+
+  const lib = useLibrary();
   const types = React.useMemo(() => lib.map((elem) => elem.Type), [lib]);
 
-  return React.useMemo(
-    () => (
-      <Html>
-        <div
-          style={{
-            width: screenWidth,
-            maxWidth: screenWidth,
-            display: "flex",
-            justifyContent: "center",
-            flexWrap: "wrap",
+  return (
+    <>
+      <Text fontSize={20} text="Open:" fill="white" />
+      {types.map((elem, i) => (
+        <LogicLabel
+          key={i}
+          x={(60 + i * 80) % screenWidth}
+          y={5 * (1 + Math.floor((60 + i * 80) / screenWidth))}
+          fontSize={16}
+          text={elem}
+          width={70}
+          onClick={() => {
+            setSrcType(elem);
           }}
-        >
-          {types.map((elem, i) => (
-            <button
-              key={i}
-              style={{ marginLeft: 1, marginRight: 1 }}
-              onClick={() => {
-                setSrcType(elem);
-              }}
-            >
-              {elem}
-            </button>
-          ))}
-        </div>
-      </Html>
-    ),
-    [JSON.stringify(types)]
+          textColor="white"
+          backgroundColor="black"
+          labelStroke={elem === srcType ? "white" : undefined}
+        />
+      ))}
+      <LogicLabel
+        x={screenWidth - 60}
+        fontSize={20}
+        text="New"
+        textColor="white"
+        backgroundColor="blue"
+        onClick={() => {
+          const title = prompt("Title:");
+          if (!title) {
+            return;
+          }
+          if (types.find((elem) => elem === title)) {
+            alert("Error: title already in use.");
+            return;
+          }
+          dispatch({ type: "newRoot", title });
+          setSrcType(title);
+        }}
+      />
+    </>
+  );
+};
+
+const Footer: React.FC<{ srcType: string }> = ({ srcType }) => {
+  const { screenWidth } = React.useContext(ScreenCtx);
+
+  const dispatch = useLibraryDispatch();
+
+  const lib = useLibrary();
+  const types = React.useMemo(
+    () => lib.map((elem) => elem.Type).filter((elem) => elem !== srcType),
+    [lib, srcType]
+  );
+
+  if (!srcType) {
+    return null;
+  }
+  return (
+    <>
+      <Text fontSize={20} text="Insert:" fill="white" />
+      {types.map((elem, i) => (
+        <LogicLabel
+          key={i}
+          x={(60 + i * 80) % screenWidth}
+          y={5 * (1 + Math.floor((60 + i * 80) / screenWidth))}
+          fontSize={16}
+          text={elem}
+          width={70}
+          onClick={() => {
+            dispatch({ type: "newEntity", parentType: srcType, Type: elem });
+          }}
+          textColor="white"
+          backgroundColor="black"
+        />
+      ))}
+    </>
   );
 };
 
@@ -150,13 +242,22 @@ export const App1: React.FC = () => {
   const screenWidth = 1280;
   const screenHeight = 720;
 
-  const [srcType, setSrcType] = React.useState("and");
+  const [srcType, setSrcType0] = React.useState(
+    localStorage.getItem("srcType") ?? ""
+  );
+  const setSrcType = React.useCallback((newSrcType: string) => {
+    setSrcType0(newSrcType);
+    localStorage.setItem("srcType", newSrcType);
+  }, []);
 
   const [lib, dispatch] = useLibraryReducer();
 
-  useControls({
+  useControls("Settings", {
     Save: levalButton(() => {
       dispatch({ type: "save" });
+    }),
+    Reset: levalButton(() => {
+      dispatch({ type: "reset" });
     }),
   });
 
@@ -167,13 +268,15 @@ export const App1: React.FC = () => {
           <Stage width={screenWidth} height={screenHeight}>
             <Layer>
               <UILayoutHeader>
-                <Text text="hello" />
+                <Header srcType={srcType} setSrcType={setSrcType} />
               </UILayoutHeader>
               <UILayoutFooter>
-                <Footer setSrcType={setSrcType} />
+                <Footer srcType={srcType} />
               </UILayoutFooter>
               <UILayoutMain>
-                <Main srcType={srcType} />
+                {!!srcType && (
+                  <Main srcType={srcType} setSrcType={setSrcType} />
+                )}
               </UILayoutMain>
             </Layer>
           </Stage>

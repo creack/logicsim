@@ -72,7 +72,7 @@ export const UILayoutFooter: React.FC<{
 };
 
 export const UILayoutMain: React.FC<{
-  children: JSX.Element | JSX.Element[];
+  children: false | JSX.Element | JSX.Element[];
 }> = ({ children }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const sidePaneWidthRatio = 0.026;

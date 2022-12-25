@@ -2,15 +2,7 @@ import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { button, useControls } from "leva";
 import React from "react";
-import {
-  Circle,
-  Group,
-  Rect,
-  Text,
-  Transformer,
-  Tag,
-  Label,
-} from "react-konva";
+import { Circle, Group, Rect, Text, Transformer } from "react-konva";
 import type {
   Connection,
   ConnectionIO,
@@ -20,6 +12,7 @@ import type {
   PartialEntityUI,
 } from "./entityInstance";
 import { EntityInstance, formatEntity } from "./entityInstance";
+import { LogicLabel } from "./Label";
 import { useLibraryDispatch, useLookupLibrary } from "./reducer";
 import { PaneCtx, ScreenCtx } from "./UI";
 
@@ -68,23 +61,19 @@ const IOComponent: React.FC<{
 
   return (
     <>
-      <Label
-        x={mode === "inputs" ? -5 : ui.shape.width + 5}
-        y={ui.shape.height * (y ?? 0)}
-      >
-        <Tag
-          fill="black"
-          pointerDirection={mode === "inputs" ? "right" : "left"}
-          pointerWidth={5}
-          pointerHeight={5}
-          lineJoin="round"
-        />
-        <Text fontSize={5} fill="white" text={subtitle} />
-      </Label>
+      <LogicLabel
+        x={mode === "inputs" ? 5 : ui.shape.width - 5}
+        y={ui.shape.height * y}
+        pointerDirection={mode === "inputs" ? "left" : "right"}
+        pointerWidth={2}
+        pointerHeight={2}
+        fontSize={4}
+        text={subtitle}
+      />
       <Circle
         fill="blue"
         x={mode === "inputs" ? 0 : ui.shape.width}
-        y={ui.shape.height * (y ?? 0)}
+        y={ui.shape.height * y}
         radius={ui.pins.radius}
         onMouseOver={handleOnMouseOver}
         onMouseOut={handleOnMouseOut}
@@ -223,6 +212,8 @@ const EntityComponent: React.FC<{
       } as EntityUI),
     [base.ui, entity.ui]
   );
+  if (ui.shape.x < 0 || ui.shape.x > 1) ui.shape.x = 0;
+  if (ui.shape.y < 0 || ui.shape.y > 1) ui.shape.y = 0;
 
   const handleOnClick = React.useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
@@ -318,6 +309,20 @@ const EntityComponent: React.FC<{
 
   return (
     <>
+      <LogicLabel
+        x={
+          centerPaneX +
+          2 * innerBorderWidth +
+          ui.shape.x * centerPaneWidth +
+          ui.shape.width / 2
+        }
+        y={ui.shape.y * sidePaneHeight - 3}
+        pointerDirection="down"
+        pointerWidth={5}
+        pointerHeight={5}
+        fontSize={8}
+        text={entity.title}
+      />
       <Group
         ref={shapeRef}
         x={centerPaneX + 2 * innerBorderWidth + ui.shape.x * centerPaneWidth}
@@ -327,16 +332,6 @@ const EntityComponent: React.FC<{
         onDragMove={handleOnDragMove}
         onDragEnd={handleOnDragEnd}
       >
-        <Label x={ui.shape.width / 2} y={-5} opacity={0.75}>
-          <Tag
-            fill="black"
-            pointerDirection="down"
-            pointerWidth={5}
-            pointerHeight={5}
-            lineJoin="round"
-          />
-          <Text fontSize={8} fill="white" text={entity.title} />
-        </Label>
         <Rect
           width={ui.shape.width}
           height={ui.shape.height}

@@ -6,6 +6,9 @@ import { library } from "./lib";
 type actionTypes =
   | { type: "save" }
   | { type: "reset" }
+  | { type: "newRoot"; title: string }
+  | { type: "updateRootTitle"; parentType: string; title: string }
+  | { type: "newEntity"; parentType: string; Type: string }
   | {
       type: "updateChildEntityCoordinates";
       parentType: string;
@@ -40,9 +43,47 @@ type actionTypes =
       action: "add" | "update" | "remove";
     };
 
+const newRoot = (title: string): Entity => ({
+  Type: title,
+  title,
+  inputs: [],
+  outputs: [],
+  entities: [],
+  connections: [],
+  ui: {
+    pins: { radius: 10 },
+    shape: {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      transparent: true,
+      color: "",
+    },
+    title: {
+      x: 0,
+      y: 0,
+      scaleX: 1,
+      scaleY: 1,
+      fontSize: 18,
+      color: "white",
+    },
+  },
+});
+
 const reducer = (state: Entity[], action: actionTypes): Entity[] => {
+  const parent =
+    "parentType" in action && action.parentType
+      ? state.find((elem) => elem.Type === action.parentType)
+      : undefined;
+
+  if ("parentType" in action && !parent) {
+    throw new Error(`parent target '${action.parentType}' not found`);
+  }
+
   switch (action.type) {
     case "reset":
+      localStorage.removeItem("srcType");
       localStorage.removeItem("library");
       const lib = library();
       localStorage.setItem("library", JSON.stringify(lib));
@@ -52,14 +93,71 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
       localStorage.setItem("library", JSON.stringify(state));
       return state;
 
-    case "updateChildEntityCoordinates":
-      const { childTarget } = lookupChildTarget(state, action);
-      if (!childTarget.ui.shape) {
-        childTarget.ui.shape = {};
+    case "newRoot":
+      return [...state, newRoot(action.title)];
+
+    case "updateRootTitle":
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? { ...parent, Type: action.title, title: action.title }
+          : parent
+      );
+
+    case "newEntity":
+      if (!state.find((elem) => elem.Type === action.Type)) {
+        throw new Error(`entity type ${action.Type} not found`);
       }
-      childTarget.ui.shape.x = action.x;
-      childTarget.ui.shape.y = action.y;
-      return state;
+      let title = `${action.Type}${
+        parent!.entities.filter((elem) => elem.Type === action.Type).length
+      }`;
+      for (let i = 0; i < 1000; i++) {
+        if (!parent!.entities.find((elem) => elem.title === title)) {
+          break;
+        }
+        title = `${title}New`;
+      }
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              entities: [
+                ...parent.entities,
+                {
+                  Type: action.Type,
+                  title,
+                  ui: {
+                    shape: { transparent: false, color: "red" },
+                  },
+                },
+              ],
+            }
+          : parent
+      );
+
+    case "updateChildEntityCoordinates":
+      lookupChildTarget(state, action); // Throws if parent of child is missing.
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              entities: parent.entities.map((child) =>
+                child.title === action.childTitle
+                  ? {
+                      ...child,
+                      ui: {
+                        ...child.ui,
+                        shape: {
+                          ...(child.ui.shape ?? {}),
+                          x: action.x,
+                          y: action.y,
+                        },
+                      },
+                    }
+                  : child
+              ),
+            }
+          : parent
+      );
 
     case "removeChildEntity":
       lookupChildTarget(state, action); // Throws if parent of child is missing.
@@ -82,9 +180,6 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
       );
 
     case "addConnection":
-      if (!state.find((elem) => elem.Type === action.parentType)) {
-        throw new Error(`parent target '${action.parentType}' not found`);
-      }
       return state.map((parent) =>
         parent.Type === action.parentType
           ? {

@@ -225,17 +225,7 @@ export const ThumbnailEditor: React.FC<{
   ui: EntityUI;
   inputs: IO[];
   outputs: IO[];
-}> = ({ title: baseTitle, ui, inputs, outputs }) => {
-  const [{ title }, setMenu] = useControls(
-    () => ({
-      title: baseTitle,
-    }),
-    [baseTitle, ui]
-  );
-  React.useEffect(() => {
-    setMenu({ title: baseTitle });
-  }, [setMenu, baseTitle, ui]);
-
+}> = ({ title, ui, inputs, outputs }) => {
   const { centerPaneX, centerPaneWidth, innerBorderWidth, sidePaneHeight } =
     React.useContext(PaneCtx);
   const [shapeProps, setShapeProps] = React.useState<Konva.RectConfig>({});
