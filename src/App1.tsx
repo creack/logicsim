@@ -5,6 +5,7 @@ import { useConnections } from "./connections";
 import { useDrawConnections } from "./drawConnections";
 import { Entities } from "./Entities";
 import { EntityInstance } from "./entityInstance";
+import type { Entity } from "./entityInstance";
 import { useIOPanes } from "./ioPanes";
 import { LogicLabel } from "./Label";
 import {
@@ -208,8 +209,24 @@ const Footer: React.FC<{ srcType: string }> = ({ srcType }) => {
   const dispatch = useLibraryDispatch();
 
   const lib = useLibrary();
+
+  const recursiveCheck = (elem?: Entity): boolean => {
+    if (!elem) return false;
+    if (elem.Type === srcType) return false;
+
+    return (
+      elem.entities
+        ?.map((parent) => lib.find((libElem) => libElem.Type === parent.Type))
+        .filter(recursiveCheck).length === 0
+    );
+  };
+
   const types = React.useMemo(
-    () => lib.map((elem) => elem.Type).filter((elem) => elem !== srcType),
+    () =>
+      lib
+        .filter((elem) => elem.Type !== srcType)
+        .filter(recursiveCheck)
+        .map((elem) => elem.Type),
     [lib, srcType]
   );
 
