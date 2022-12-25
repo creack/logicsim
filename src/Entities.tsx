@@ -3,14 +3,7 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { button, useControls } from "leva";
 import React from "react";
 import { Circle, Group, Rect, Text, Transformer } from "react-konva";
-import type {
-  Connection,
-  ConnectionIO,
-  Entity,
-  EntityUI,
-  IO,
-  PartialEntityUI,
-} from "./entityInstance";
+import type { Connection, ConnectionIO, Entity, EntityUI, IO, PartialEntityUI } from "./entityInstance";
 import { EntityInstance, formatEntity } from "./entityInstance";
 import { LogicLabel } from "./Label";
 import { useLibraryDispatch, useLookupLibrary } from "./reducer";
@@ -24,23 +17,17 @@ const IOComponent: React.FC<{
   y: number;
   subtitle: string;
 }> = ({ entity, mode, ui, handleOnClickConnection, y, subtitle }) => {
-  const handleOnMouseOver = React.useCallback(
-    (e: KonvaEventObject<MouseEvent>) => {
-      const prevRadius = parseInt(e.currentTarget.getAttr("radius"));
-      e.currentTarget.setAttr("prev_radius", prevRadius);
-      e.currentTarget.setAttr("prev_fill", e.currentTarget.getAttr("fill"));
-      e.currentTarget.setAttr("fill", "rgb(126, 126, 126)");
-      e.currentTarget.setAttr("radius", prevRadius * 1.3);
-    },
-    []
-  );
-  const handleOnMouseOut = React.useCallback(
-    (e: KonvaEventObject<MouseEvent>) => {
-      e.currentTarget.setAttr("fill", e.currentTarget.getAttr("prev_fill"));
-      e.currentTarget.setAttr("radius", e.currentTarget.getAttr("prev_radius"));
-    },
-    []
-  );
+  const handleOnMouseOver = React.useCallback((e: KonvaEventObject<MouseEvent>) => {
+    const prevRadius = parseInt(e.currentTarget.getAttr("radius"));
+    e.currentTarget.setAttr("prev_radius", prevRadius);
+    e.currentTarget.setAttr("prev_fill", e.currentTarget.getAttr("fill"));
+    e.currentTarget.setAttr("fill", "rgb(126, 126, 126)");
+    e.currentTarget.setAttr("radius", prevRadius * 1.3);
+  }, []);
+  const handleOnMouseOut = React.useCallback((e: KonvaEventObject<MouseEvent>) => {
+    e.currentTarget.setAttr("fill", e.currentTarget.getAttr("prev_fill"));
+    e.currentTarget.setAttr("radius", e.currentTarget.getAttr("prev_radius"));
+  }, []);
   const targetIO = React.useMemo(
     () => ({
       Type: entity.Type,
@@ -48,7 +35,7 @@ const IOComponent: React.FC<{
       subtype: mode,
       subtitle: subtitle,
     }),
-    [entity.Type, entity.title, mode, subtitle]
+    [entity.Type, entity.title, mode, subtitle],
   );
   const handleOnClick = React.useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
@@ -56,7 +43,7 @@ const IOComponent: React.FC<{
       const pos = e.currentTarget.absolutePosition();
       handleOnClickConnection(targetIO, pos.x, pos.y - ui.pins.radius / 2);
     },
-    [handleOnClickConnection, ui.pins.radius, targetIO]
+    [handleOnClickConnection, ui.pins.radius, targetIO],
   );
 
   return (
@@ -93,17 +80,9 @@ const IOs: React.FC<{
   const renderedIOs = React.useMemo(
     () =>
       ios.map((io, i) => (
-        <IOComponent
-          key={i}
-          entity={entity}
-          mode={mode}
-          ui={ui}
-          handleOnClickConnection={handleOnClickConnection}
-          subtitle={io.title}
-          y={io.y}
-        />
+        <IOComponent key={i} entity={entity} mode={mode} ui={ui} handleOnClickConnection={handleOnClickConnection} subtitle={io.title} y={io.y} />
       )),
-    [entity, mode, handleOnClickConnection, ios]
+    [entity, mode, handleOnClickConnection, ios, ui],
   );
   return <Group>{renderedIOs}</Group>;
 };
@@ -121,8 +100,7 @@ const EntityTransformer: React.FC<{
   const [, setMenu] = useControls(
     `Entity ${title} Props:`,
     () => ({
-      transparent:
-        "transparent" in ui.shape && ui.shape.transparent ? true : false,
+      transparent: "transparent" in ui.shape && ui.shape.transparent ? true : false,
       color: {
         value: "color" in ui.shape && ui.shape.color ? ui.shape.color : "#ccc",
         render: (getValue) => !getValue("Shape Props.transparent"),
@@ -131,12 +109,11 @@ const EntityTransformer: React.FC<{
         dispatch({ type: "removeChildEntity", parentType, childTitle: title });
       }),
     }),
-    [ui.shape, title, parentType]
+    [ui.shape, title, parentType],
   );
   React.useEffect(() => {
     setMenu({
-      transparent:
-        "transparent" in ui.shape && ui.shape.transparent ? true : false,
+      transparent: "transparent" in ui.shape && ui.shape.transparent ? true : false,
       color: "color" in ui.shape && ui.shape.color ? ui.shape.color : "#ccc",
     });
   }, [ui.shape, setMenu]);
@@ -149,7 +126,7 @@ const EntityTransformer: React.FC<{
       trRef.current.nodes([shapeRef.current]);
       trRef.current.getLayer()?.batchDraw();
     }
-  }, [isSelected]);
+  }, [isSelected, shapeRef]);
 
   return (
     <Transformer
@@ -169,10 +146,7 @@ const EntityTransformer: React.FC<{
 };
 
 const EntityComponent: React.FC<{
-  entity: Omit<
-    Entity,
-    "ui" | "inputs" | "outputs" | "connections" | "entities"
-  > & {
+  entity: Omit<Entity, "ui" | "inputs" | "outputs" | "connections" | "entities"> & {
     ui: PartialEntityUI;
   };
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
@@ -180,22 +154,9 @@ const EntityComponent: React.FC<{
   setSelected: React.Dispatch<React.SetStateAction<string>>;
   selected: string;
   parentType: string;
-}> = ({
-  entity,
-  setConnections,
-  handleOnClickConnection,
-  setSelected,
-  selected,
-  parentType,
-}) => {
+}> = ({ entity, setConnections, handleOnClickConnection, setSelected, selected, parentType }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
-  const {
-    centerPaneX,
-    centerPaneY,
-    centerPaneWidth,
-    sidePaneHeight,
-    innerBorderWidth,
-  } = React.useContext(PaneCtx);
+  const { centerPaneX, centerPaneWidth, sidePaneHeight, innerBorderWidth } = React.useContext(PaneCtx);
   const dispatch = useLibraryDispatch();
 
   const base = useLookupLibrary(entity.Type);
@@ -210,7 +171,7 @@ const EntityComponent: React.FC<{
         shape: { ...base.ui.shape, ...entity.ui.shape },
         title: { ...base.ui.title, ...entity.ui.title },
       } as EntityUI),
-    [base.ui, entity.ui]
+    [base.ui, entity.ui],
   );
   if (ui.shape.x < 0 || ui.shape.x > 1) ui.shape.x = 0;
   if (ui.shape.y < 0 || ui.shape.y > 1) ui.shape.y = 0;
@@ -218,11 +179,9 @@ const EntityComponent: React.FC<{
   const handleOnClick = React.useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
       e.cancelBubble = true;
-      setSelected((selected) =>
-        selected !== entity.title ? entity.title : ""
-      );
+      setSelected((selected) => (selected !== entity.title ? entity.title : ""));
     },
-    [setSelected]
+    [setSelected, entity.title],
   );
 
   const handleOnDragEnd = React.useCallback(
@@ -238,16 +197,7 @@ const EntityComponent: React.FC<{
         y: pos.y / sidePaneHeight,
       });
     },
-    [
-      parentType,
-      entity.Type,
-      entity.title,
-      centerPaneWidth,
-      sidePaneHeight,
-      centerPaneX,
-      centerPaneY,
-      innerBorderWidth,
-    ]
+    [parentType, entity.title, centerPaneWidth, sidePaneHeight, centerPaneX, innerBorderWidth, dispatch],
   );
 
   const handleOnDragMove = React.useCallback(
@@ -259,28 +209,16 @@ const EntityComponent: React.FC<{
 
       // Update connections.
       const pos = e.currentTarget.absolutePosition();
-      const handle = (
-        targetIO: ConnectionIO,
-        targetPoints: [number, number]
-      ) => {
+      const handle = (targetIO: ConnectionIO, targetPoints: [number, number]) => {
         if (targetIO.Type === "entity" && targetIO.title === entity.title) {
-          targetPoints[0] =
-            targetIO.subtype === "inputs"
-              ? pos.x / screenWidth
-              : (pos.x + ui.shape.width) / screenWidth;
+          targetPoints[0] = targetIO.subtype === "inputs" ? pos.x / screenWidth : (pos.x + ui.shape.width) / screenWidth;
 
-          const targetPin = (
-            targetIO.subtype === "inputs" ? base.inputs : base.outputs
-          )?.find((pin) => pin.title === targetIO.subtitle);
+          const targetPin = (targetIO.subtype === "inputs" ? base.inputs : base.outputs)?.find((pin) => pin.title === targetIO.subtitle);
           if (!targetPin) {
-            throw new Error(
-              `target from pin ${formatEntity(targetIO)} not found`
-            );
+            throw new Error(`target from pin ${formatEntity(targetIO)} not found`);
           }
 
-          targetPoints[1] =
-            (pos.y - ui.pins.radius / 2 + targetPin.y * ui.shape.height) /
-            screenHeight;
+          targetPoints[1] = (pos.y - ui.pins.radius / 2 + targetPin.y * ui.shape.height) / screenHeight;
         }
       };
 
@@ -289,19 +227,10 @@ const EntityComponent: React.FC<{
           handle(elem.From, elem.points.From);
           handle(elem.To, elem.points.To);
           return elem;
-        })
+        }),
       );
     },
-    [
-      setConnections,
-      ui,
-      base,
-      screenWidth,
-      screenHeight,
-      entity,
-      selected,
-      setSelected,
-    ]
+    [setConnections, ui, base, screenWidth, screenHeight, entity, selected, setSelected],
   );
 
   const isSelected = selected === entity.title;
@@ -310,12 +239,7 @@ const EntityComponent: React.FC<{
   return (
     <>
       <LogicLabel
-        x={
-          centerPaneX +
-          2 * innerBorderWidth +
-          ui.shape.x * centerPaneWidth +
-          ui.shape.width / 2
-        }
+        x={centerPaneX + 2 * innerBorderWidth + ui.shape.x * centerPaneWidth + ui.shape.width / 2}
         y={ui.shape.y * sidePaneHeight - 3}
         pointerDirection="down"
         pointerWidth={5}
@@ -337,11 +261,7 @@ const EntityComponent: React.FC<{
           height={ui.shape.height}
           stroke="red"
           strokeEnabled
-          fill={
-            "transparent" in ui.shape && ui.shape.transparent
-              ? undefined
-              : ui.shape.color
-          }
+          fill={"transparent" in ui.shape && ui.shape.transparent ? undefined : ui.shape.color}
         />
         <Text
           text={entity.Type}
@@ -352,30 +272,10 @@ const EntityComponent: React.FC<{
           scaleY={ui.title.scaleY}
           fill={ui.title.color}
         />
-        <IOs
-          entity={entity}
-          ios={base.inputs}
-          mode="inputs"
-          ui={ui}
-          handleOnClickConnection={handleOnClickConnection}
-        />
-        <IOs
-          entity={entity}
-          ios={base.outputs}
-          mode="outputs"
-          ui={ui}
-          handleOnClickConnection={handleOnClickConnection}
-        />
+        <IOs entity={entity} ios={base.inputs} mode="inputs" ui={ui} handleOnClickConnection={handleOnClickConnection} />
+        <IOs entity={entity} ios={base.outputs} mode="outputs" ui={ui} handleOnClickConnection={handleOnClickConnection} />
       </Group>
-      {isSelected && (
-        <EntityTransformer
-          shapeRef={shapeRef}
-          isSelected={isSelected}
-          ui={ui}
-          title={entity.title}
-          parentType={parentType}
-        />
-      )}
+      {isSelected && <EntityTransformer shapeRef={shapeRef} isSelected={isSelected} ui={ui} title={entity.title} parentType={parentType} />}
     </>
   );
 };
@@ -405,7 +305,7 @@ export const Entities: React.FC<{
           parentType={g.root.Type}
         />
       )),
-    [entities, handleOnClickConnection, selected, g.root.Type, g.root.title]
+    [entities, handleOnClickConnection, selected, g.root.Type, setConnections],
   );
 
   return <Group id="entities">{renderedEntities}</Group>;

@@ -3,24 +3,15 @@ import { button, useControls } from "leva";
 import React from "react";
 import { Line } from "react-konva";
 import type { drawState } from "./drawConnections";
-import type {
-  Connection,
-  ConnectionIO,
-  EntityInstance,
-} from "./entityInstance";
+import type { Connection, ConnectionIO, EntityInstance } from "./entityInstance";
 import { useLibraryDispatch } from "./reducer";
 import { PaneCtx, ScreenCtx } from "./UI";
 
-export const useConnections = (
-  g: EntityInstance,
-  setDrawConnection: React.Dispatch<React.SetStateAction<drawState>>
-) => {
+export const useConnections = (g: EntityInstance, setDrawConnection: React.Dispatch<React.SetStateAction<drawState>>) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const dispatch = useLibraryDispatch();
 
-  const [connections, setConnections] = React.useState(
-    g.root.connections ?? []
-  );
+  const [connections, setConnections] = React.useState(g.root.connections ?? []);
   React.useEffect(() => {
     setConnections(g.root.connections ?? []);
   }, [g, setConnections]);
@@ -37,13 +28,8 @@ export const useConnections = (
               title: target.title === "" ? g.root.title : target.title,
             },
             points: {
-              From: [
-                draw.points[0][0] / screenWidth,
-                draw.points[0][1] / screenHeight,
-              ],
-              intermediaries: draw.points
-                .slice(1)
-                .map((p) => [p[0] / screenWidth, p[1] / screenHeight]),
+              From: [draw.points[0][0] / screenWidth, draw.points[0][1] / screenHeight],
+              intermediaries: draw.points.slice(1).map((p) => [p[0] / screenWidth, p[1] / screenHeight]),
               To: [x / screenWidth, y / screenHeight],
             },
           };
@@ -68,7 +54,7 @@ export const useConnections = (
         };
       });
     },
-    [setDrawConnection, setConnections, g.root.Type, g.root.title]
+    [setDrawConnection, setConnections, g.root.Type, g.root.title, dispatch, screenWidth, screenHeight],
   );
 
   const [selected, setSelected] = React.useState<number | false>(false);
@@ -84,7 +70,7 @@ export const useConnections = (
           parentType={g.root.Type}
         />
       )),
-    [connections, selected, g.root.Type]
+    [connections, selected, g.root.Type],
   );
 
   return { renderedConnections, setConnections, handleOnClickConnection };
@@ -97,9 +83,7 @@ const SelectedConnectionMenu: React.FC<{
   const dispatch = useLibraryDispatch();
 
   useControls(
-    `Connection ${connection.From.subtype.slice(0, 2)}:${
-      connection.From.subtitle
-    }->${connection.To.subtype.slice(0, 2)}:${connection.To.subtitle}:`,
+    `Connection ${connection.From.subtype.slice(0, 2)}:${connection.From.subtitle}->${connection.To.subtype.slice(0, 2)}:${connection.To.subtitle}:`,
     () => ({
       remove: button(() => {
         dispatch({
@@ -110,7 +94,7 @@ const SelectedConnectionMenu: React.FC<{
         });
       }),
     }),
-    [parentType]
+    [parentType],
   );
 
   return null;
@@ -127,12 +111,7 @@ const ConnectionComponent: React.FC<{
 
   return (
     <>
-      {isSelected && (
-        <SelectedConnectionMenu
-          connection={connection}
-          parentType={parentType}
-        />
-      )}
+      {isSelected && <SelectedConnectionMenu connection={connection} parentType={parentType} />}
       <Line
         stroke={isSelected ? "black" : "rgb(32, 36, 46)"}
         strokeWidth={isSelected ? 4.5 : 3}
@@ -149,10 +128,7 @@ const ConnectionComponent: React.FC<{
         onMouseOver={(e: KonvaEventObject<MouseEvent>) => {
           if (isSelected) return;
 
-          e.currentTarget.setAttr(
-            "prev_color",
-            e.currentTarget.getAttr("stroke")
-          );
+          e.currentTarget.setAttr("prev_color", e.currentTarget.getAttr("stroke"));
           e.currentTarget.setAttr("stroke", "black");
 
           const prevSize = e.currentTarget.getAttr("strokeWidth");
@@ -170,15 +146,9 @@ const ConnectionComponent: React.FC<{
           }
         }}
         tension={0.3}
-        points={[
-          connection.points!.From,
-          ...(connection.points?.intermediaries ?? []),
-          connection.points!.To,
-        ]
+        points={[connection.points!.From, ...(connection.points?.intermediaries ?? []), connection.points!.To]
           .flat()
-          .map((elem, i) =>
-            i % 2 === 0 ? elem * screenWidth : elem * screenHeight - centerPaneY
-          )}
+          .map((elem, i) => (i % 2 === 0 ? elem * screenWidth : elem * screenHeight - centerPaneY))}
       />
     </>
   );

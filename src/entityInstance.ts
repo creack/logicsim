@@ -84,15 +84,8 @@ export type Entity = {
   }>;
 };
 
-export const formatEntity = (entity: {
-  Type?: string;
-  title?: string;
-  subtype?: string;
-  subtitle?: string;
-}): string => {
-  return [entity.Type, entity.title, entity.subtype, entity.subtitle]
-    .filter((elem) => !!elem)
-    .join(":");
+export const formatEntity = (entity: { Type?: string; title?: string; subtype?: string; subtitle?: string }): string => {
+  return [entity.Type, entity.title, entity.subtype, entity.subtitle].filter((elem) => !!elem).join(":");
 };
 
 export class EntityInstance {
@@ -105,11 +98,7 @@ export class EntityInstance {
     description: string;
   }> = [];
 
-  constructor(
-    root: Omit<Entity, "ui"> | undefined,
-    lib: Omit<Entity, "ui">[],
-    indent: number = 0
-  ) {
+  constructor(root: Omit<Entity, "ui"> | undefined, lib: Omit<Entity, "ui">[], indent = 0) {
     if (!root) {
       throw new Error(`missing root entity`);
     }
@@ -124,18 +113,9 @@ export class EntityInstance {
 
     this.root.connections?.forEach((connection) => {
       if (connection.From.Type === "root") {
-        const ret =
-          connection.To.Type === "root"
-            ? this
-            : this.entities.find(
-                (entity) => entity.root.title === connection.To.title
-              );
+        const ret = connection.To.Type === "root" ? this : this.entities.find((entity) => entity.root.title === connection.To.title);
         if (!ret) {
-          throw new Error(
-            `[to] Target for connection not found ${formatEntity(
-              connection.To
-            )} in ${formatEntity(this.root)}`
-          );
+          throw new Error(`[to] Target for connection not found ${formatEntity(connection.To)} in ${formatEntity(this.root)}`);
         }
 
         this.actions.push({
@@ -143,49 +123,26 @@ export class EntityInstance {
           fct: (value: boolean) => {
             ret.setValue(connection.To.subtype, connection.To.subtitle, value);
           },
-          description: `[action] from: ${formatEntity(
-            connection.From
-          )} in ${formatEntity(this.root)} setValue ${formatEntity(
-            connection.To
-          )}`,
+          description: `[action] from: ${formatEntity(connection.From)} in ${formatEntity(this.root)} setValue ${formatEntity(connection.To)}`,
         });
         return;
       }
       if (connection.From.Type === "entity") {
-        const target = this.entities.find(
-          (entity) => entity.root.title === connection.From.title
-        );
+        const target = this.entities.find((entity) => entity.root.title === connection.From.title);
         if (!target) {
-          throw new Error(
-            `[from] Taget connected entity not found ${formatEntity(
-              connection.From
-            )} in ${formatEntity(this.root)}}`
-          );
+          throw new Error(`[from] Taget connected entity not found ${formatEntity(connection.From)} in ${formatEntity(this.root)}}`);
         }
 
-        const ret =
-          connection.To.Type === "root"
-            ? this
-            : this.entities.find(
-                (entity) => entity.root.title === connection.To.title
-              );
+        const ret = connection.To.Type === "root" ? this : this.entities.find((entity) => entity.root.title === connection.To.title);
         if (!ret) {
-          throw new Error(
-            `[to] Target for conneciton not found ${formatEntity(
-              connection.To
-            )} in ${formatEntity(this.root)})`
-          );
+          throw new Error(`[to] Target for conneciton not found ${formatEntity(connection.To)} in ${formatEntity(this.root)})`);
         }
         target.actions.push({
           From: connection.From,
           fct: (value: boolean) => {
             ret.setValue(connection.To.subtype, connection.To.subtitle, value);
           },
-          description: `[action] from: ${formatEntity(
-            connection.From
-          )} in ${formatEntity(this.root)} setValue ${formatEntity(
-            connection.To
-          )}`,
+          description: `[action] from: ${formatEntity(connection.From)} in ${formatEntity(this.root)} setValue ${formatEntity(connection.To)}`,
         });
         return;
       }
@@ -195,9 +152,7 @@ export class EntityInstance {
 
   run() {
     if (this.root.Type === "nand") {
-      const output = !(
-        !!this.root.inputs?.[0]?.value && !!this.root.inputs?.[1]?.value
-      );
+      const output = !(!!this.root.inputs?.[0]?.value && !!this.root.inputs?.[1]?.value);
       if (this.root.outputs?.[0].value !== output) {
         this.setValue("outputs", "0", output);
       }
@@ -205,28 +160,19 @@ export class EntityInstance {
   }
 
   setValue(Type: string, title: string, value: boolean) {
-    const ret = (
-      Type === "inputs" ? this.root.inputs : this.root.outputs
-    )?.find((elem) => elem.title === title);
+    const ret = (Type === "inputs" ? this.root.inputs : this.root.outputs)?.find((elem) => elem.title === title);
     if (!ret) {
-      throw new Error(
-        `${Type} '${title}' not found in ${formatEntity(this.root)}`
-      );
+      throw new Error(`${Type} '${title}' not found in ${formatEntity(this.root)}`);
     }
     if (ret.value === value) {
-      console.warn(
-        `Value ${Type}:${title} in ${formatEntity(this.root)} already set!`
-      );
+      console.warn(`Value ${Type}:${title} in ${formatEntity(this.root)} already set!`);
       return;
     }
     ret.value = value;
     this.run();
 
     this.actions
-      .filter(
-        (action) =>
-          action.From.subtype === Type && action.From.subtitle === title
-      )
+      .filter((action) => action.From.subtype === Type && action.From.subtitle === title)
       .forEach((action) => {
         action.fct(value);
       });

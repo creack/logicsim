@@ -72,10 +72,7 @@ const newRoot = (title: string): Entity => ({
 });
 
 const reducer = (state: Entity[], action: actionTypes): Entity[] => {
-  const parent =
-    "parentType" in action && action.parentType
-      ? state.find((elem) => elem.Type === action.parentType)
-      : undefined;
+  const parent = "parentType" in action && action.parentType ? state.find((elem) => elem.Type === action.parentType) : undefined;
 
   if ("parentType" in action && !parent) {
     throw new Error(`parent target '${action.parentType}' not found`);
@@ -85,9 +82,11 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
     case "reset":
       localStorage.removeItem("srcType");
       localStorage.removeItem("library");
-      const lib = library();
-      localStorage.setItem("library", JSON.stringify(lib));
-      return lib;
+      return (() => {
+        const lib = library();
+        localStorage.setItem("library", JSON.stringify(lib));
+        return lib;
+      })();
 
     case "save":
       localStorage.setItem("library", JSON.stringify(state));
@@ -97,42 +96,38 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
       return [...state, newRoot(action.title)];
 
     case "updateRootTitle":
-      return state.map((parent) =>
-        parent.Type === action.parentType
-          ? { ...parent, Type: action.title, title: action.title }
-          : parent
-      );
+      return state.map((parent) => (parent.Type === action.parentType ? { ...parent, Type: action.title, title: action.title } : parent));
 
     case "newEntity":
       if (!state.find((elem) => elem.Type === action.Type)) {
         throw new Error(`entity type ${action.Type} not found`);
       }
-      let title = `${action.Type}${
-        parent!.entities.filter((elem) => elem.Type === action.Type).length
-      }`;
-      for (let i = 0; i < 1000; i++) {
-        if (!parent!.entities.find((elem) => elem.title === title)) {
-          break;
+      return (() => {
+        let title = `${action.Type}${parent!.entities.filter((elem) => elem.Type === action.Type).length}`;
+        for (let i = 0; i < 1000; i++) {
+          if (!parent!.entities.find((elem) => elem.title === title)) {
+            break;
+          }
+          title = `${title}New`;
         }
-        title = `${title}New`;
-      }
-      return state.map((parent) =>
-        parent.Type === action.parentType
-          ? {
-              ...parent,
-              entities: [
-                ...parent.entities,
-                {
-                  Type: action.Type,
-                  title,
-                  ui: {
-                    shape: { transparent: false, color: "red" },
+        return state.map((parent) =>
+          parent.Type === action.parentType
+            ? {
+                ...parent,
+                entities: [
+                  ...parent.entities,
+                  {
+                    Type: action.Type,
+                    title,
+                    ui: {
+                      shape: { transparent: false, color: "red" },
+                    },
                   },
-                },
-              ],
-            }
-          : parent
-      );
+                ],
+              }
+            : parent,
+        );
+      })();
 
     case "updateChildEntityCoordinates":
       lookupChildTarget(state, action); // Throws if parent of child is missing.
@@ -153,10 +148,10 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
                         },
                       },
                     }
-                  : child
+                  : child,
               ),
             }
-          : parent
+          : parent,
       );
 
     case "removeChildEntity":
@@ -165,18 +160,10 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
         parent.Type === action.parentType
           ? {
               ...parent,
-              entities: parent.entities.filter(
-                (elem) => elem.title !== action.childTitle
-              ),
-              connections: parent.connections.filter(
-                (elem) =>
-                  !(
-                    elem.From.title === action.childTitle ||
-                    elem.To.title === action.childTitle
-                  )
-              ),
+              entities: parent.entities.filter((elem) => elem.title !== action.childTitle),
+              connections: parent.connections.filter((elem) => !(elem.From.title === action.childTitle || elem.To.title === action.childTitle)),
             }
-          : parent
+          : parent,
       );
 
     case "addConnection":
@@ -187,14 +174,8 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
               connections: [
                 ...parent.connections.filter(
                   (elem) =>
-                    !(
-                      formatEntity(elem.From) === formatEntity(action.From) &&
-                      formatEntity(elem.To) === formatEntity(action.To)
-                    ) &&
-                    !(
-                      formatEntity(elem.From) === formatEntity(action.To) &&
-                      formatEntity(elem.To) === formatEntity(action.From)
-                    )
+                    !(formatEntity(elem.From) === formatEntity(action.From) && formatEntity(elem.To) === formatEntity(action.To)) &&
+                    !(formatEntity(elem.From) === formatEntity(action.To) && formatEntity(elem.To) === formatEntity(action.From)),
                 ),
                 {
                   From: { ...action.From },
@@ -202,16 +183,12 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
                   points: {
                     From: [...action.points.From],
                     To: [...action.points.To],
-                    intermediaries: [
-                      ...action.points.intermediaries.map(
-                        (elem) => [...elem] as [number, number]
-                      ),
-                    ],
+                    intermediaries: [...action.points.intermediaries.map((elem) => [...elem] as [number, number])],
                   },
                 },
               ],
             }
-          : parent
+          : parent,
       );
 
     case "removeConnection":
@@ -222,14 +199,10 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
             ? {
                 ...parent,
                 connections: parent.connections.filter(
-                  (elem) =>
-                    !(
-                      formatEntity(elem.From) === formatEntity(action.From) ||
-                      formatEntity(elem.To) === formatEntity(action.From)
-                    )
+                  (elem) => !(formatEntity(elem.From) === formatEntity(action.From) || formatEntity(elem.To) === formatEntity(action.From)),
                 ),
               }
-            : parent
+            : parent,
         );
       }
       return state.map((parent) =>
@@ -237,14 +210,10 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
           ? {
               ...parent,
               connections: parent.connections.filter(
-                (elem) =>
-                  !(
-                    formatEntity(elem.From) === formatEntity(action.From) &&
-                    formatEntity(elem.To) === formatEntity(action.To!)
-                  )
+                (elem) => !(formatEntity(elem.From) === formatEntity(action.From) && formatEntity(elem.To) === formatEntity(action.To!)),
               ),
             }
-          : parent
+          : parent,
       );
 
     case "updateIOPane":
@@ -257,58 +226,38 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
             parent.Type === action.parentType
               ? {
                   ...parent,
-                  [action.mode]: [
-                    ...parent[action.mode],
-                    { title: action.title, y: action.y },
-                  ],
+                  [action.mode]: [...parent[action.mode], { title: action.title, y: action.y }],
                 }
-              : parent
+              : parent,
           );
         case "remove":
           return state.map((parent) =>
             parent.Type === action.parentType
               ? {
                   ...parent,
-                  [action.mode]: parent[action.mode].filter(
-                    (elem) => elem.title !== action.title
-                  ),
+                  [action.mode]: parent[action.mode].filter((elem) => elem.title !== action.title),
                   connections: parent.connections.filter(
                     (elem) =>
-                      !(
-                        (elem.From.Type === "root" &&
-                          elem.From.subtitle === action.title) ||
-                        (elem.To.Type === "root" &&
-                          elem.To.subtitle === action.title)
-                      )
+                      !((elem.From.Type === "root" && elem.From.subtitle === action.title) || (elem.To.Type === "root" && elem.To.subtitle === action.title)),
                   ),
                 }
-              : parent
+              : parent,
           );
         case "update":
           return state.map((parent) =>
             parent.Type === action.parentType
               ? {
                   ...parent,
-                  [action.mode]: [
-                    ...parent[action.mode].map((elem) =>
-                      elem.title === action.title
-                        ? { ...elem, y: action.y }
-                        : elem
-                    ),
-                  ],
+                  [action.mode]: [...parent[action.mode].map((elem) => (elem.title === action.title ? { ...elem, y: action.y } : elem))],
                 }
-              : parent
+              : parent,
           );
         default:
-          throw new Error(
-            `unknown updateIOPane action '${JSON.stringify(action)}'`
-          );
+          throw new Error(`unknown updateIOPane action '${JSON.stringify(action)}'`);
       }
 
     default:
-      throw new Error(
-        `unknown reducer action type '${JSON.stringify(action)}'`
-      );
+      throw new Error(`unknown reducer action type '${JSON.stringify(action)}'`);
   }
 };
 
@@ -317,29 +266,23 @@ const lookupChildTarget = (
   action: {
     parentType: string;
     childTitle: string;
-  }
+  },
 ) => {
   const parentTarget = state.find((elem) => elem.Type === action.parentType);
   if (!parentTarget) {
     throw new Error(`parent target '${action.parentType}' not found`);
   }
-  const childTarget = parentTarget.entities.find(
-    (elem) => elem.title === action.childTitle
-  );
+  const childTarget = parentTarget.entities.find((elem) => elem.title === action.childTitle);
   if (!childTarget) {
     console.warn({ parentTarget });
-    throw new Error(
-      `child target '${action.childTitle}' in '${action.parentType}' not found`
-    );
+    throw new Error(`child target '${action.childTitle}' in '${action.parentType}' not found`);
   }
   return { parentTarget, childTarget };
 };
 
 export const useLibraryReducer = () => React.useReducer(reducer, library());
 
-export const LibraryDispatchCtx = React.createContext<
-  React.Dispatch<actionTypes>
->(null as unknown as React.Dispatch<actionTypes>);
+export const LibraryDispatchCtx = React.createContext<React.Dispatch<actionTypes>>(null as unknown as React.Dispatch<actionTypes>);
 export const LibraryCtx = React.createContext<Entity[]>([]);
 
 export const useLibraryDispatch = () => React.useContext(LibraryDispatchCtx);
@@ -348,8 +291,5 @@ export const useLibrary = () => React.useContext(LibraryCtx);
 export const useLookupLibrary = (Type: string): Entity | undefined => {
   const lib = useLibrary();
 
-  return React.useMemo(
-    () => lib.find((elem) => elem.Type === Type),
-    [lib, Type]
-  );
+  return React.useMemo(() => lib.find((elem) => elem.Type === Type), [lib, Type]);
 };

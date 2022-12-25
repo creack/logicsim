@@ -8,22 +8,9 @@ import { EntityInstance } from "./entityInstance";
 import type { Entity } from "./entityInstance";
 import { useIOPanes } from "./ioPanes";
 import { LogicLabel } from "./Label";
-import {
-  LibraryCtx,
-  LibraryDispatchCtx,
-  useLibrary,
-  useLibraryDispatch,
-  useLibraryReducer,
-  useLookupLibrary,
-} from "./reducer";
+import { LibraryCtx, LibraryDispatchCtx, useLibrary, useLibraryDispatch, useLibraryReducer, useLookupLibrary } from "./reducer";
 import { ThumbnailEditor } from "./ThumbnailEditor";
-import {
-  PaneCtx,
-  ScreenCtx,
-  UILayoutFooter,
-  UILayoutHeader,
-  UILayoutMain,
-} from "./UI";
+import { PaneCtx, ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from "./UI";
 
 const Main: React.FC<{
   srcType: string;
@@ -31,13 +18,7 @@ const Main: React.FC<{
 }> = ({ srcType, setSrcType }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const [viewMode, setViewMode] = React.useState<"main" | "thumbnail">("main");
-  const {
-    centerPaneX,
-    centerPaneWidth,
-    innerBorderWidth,
-    outerBorderWidth,
-    sidePaneHeight,
-  } = React.useContext(PaneCtx);
+  const { centerPaneX, centerPaneWidth, innerBorderWidth, outerBorderWidth, sidePaneHeight } = React.useContext(PaneCtx);
 
   const dispatch = useLibraryDispatch();
 
@@ -58,11 +39,11 @@ const Main: React.FC<{
         },
       },
     }),
-    [srcType]
+    [srcType],
   );
   React.useEffect(() => {
     setMenu({ Title: srcType });
-  }, [srcType]);
+  }, [srcType, setMenu]);
 
   useControls(
     "View Mode",
@@ -71,16 +52,16 @@ const Main: React.FC<{
         () => {
           setViewMode("main");
         },
-        { disabled: viewMode === "main" }
+        { disabled: viewMode === "main" },
       ),
       Thumbnail: levalButton(
         () => {
           setViewMode("thumbnail");
         },
-        { disabled: viewMode === "thumbnail" }
+        { disabled: viewMode === "thumbnail" },
       ),
     }),
-    [viewMode, setViewMode]
+    [viewMode, setViewMode],
   );
 
   const lib = useLibrary();
@@ -90,62 +71,26 @@ const Main: React.FC<{
     return new EntityInstance(base, lib);
   }, [base, srcType, lib]);
 
-  const {
-    handleOnClick,
-    handleOnMouseMove,
-    setDrawConnection,
-    renderedDrawConnection,
-  } = useDrawConnections();
-  const { setConnections, handleOnClickConnection, renderedConnections } =
-    useConnections(g, setDrawConnection);
+  const { handleOnClick, handleOnMouseMove, setDrawConnection, renderedDrawConnection } = useDrawConnections();
+  const { setConnections, handleOnClickConnection, renderedConnections } = useConnections(g, setDrawConnection);
 
-  const { inputs, outputs, renderedIOPanes } = useIOPanes(
-    g,
-    setConnections,
-    handleOnClickConnection
-  );
+  const { inputs, outputs, renderedIOPanes } = useIOPanes(g, setConnections, handleOnClickConnection);
 
   return (
-    <Group
-      width={screenWidth}
-      height={screenHeight}
-      onMouseMove={handleOnMouseMove}
-      onClick={handleOnClick}
-    >
-      <LogicLabel
-        x={centerPaneX + centerPaneWidth / 2.1}
-        y={-innerBorderWidth - outerBorderWidth}
-        fontSize={outerBorderWidth}
-        text={title}
-      />
-      <Rect
-        x={centerPaneX}
-        y={0}
-        width={centerPaneWidth}
-        height={sidePaneHeight}
-      />
+    <Group width={screenWidth} height={screenHeight} onMouseMove={handleOnMouseMove} onClick={handleOnClick}>
+      <LogicLabel x={centerPaneX + centerPaneWidth / 2.1} y={-innerBorderWidth - outerBorderWidth} fontSize={outerBorderWidth} text={title} />
+      <Rect x={centerPaneX} y={0} width={centerPaneWidth} height={sidePaneHeight} />
 
       {viewMode === "main" && (
         <>
-          <Entities
-            g={g}
-            setConnections={setConnections}
-            handleOnClickConnection={handleOnClickConnection}
-          />
+          <Entities g={g} setConnections={setConnections} handleOnClickConnection={handleOnClickConnection} />
           {renderedDrawConnection}
           {renderedConnections}
         </>
       )}
       {renderedIOPanes}
 
-      {viewMode === "thumbnail" && (
-        <ThumbnailEditor
-          ui={{ ...base!.ui }}
-          title={title}
-          inputs={inputs}
-          outputs={outputs}
-        />
-      )}
+      {viewMode === "thumbnail" && <ThumbnailEditor ui={{ ...base!.ui }} title={title} inputs={inputs} outputs={outputs} />}
     </Group>
   );
 };
@@ -210,16 +155,15 @@ const Footer: React.FC<{ srcType: string }> = ({ srcType }) => {
 
   const lib = useLibrary();
 
-  const recursiveCheck = (elem?: Entity): boolean => {
-    if (!elem) return false;
-    if (elem.Type === srcType) return false;
+  const recursiveCheck = React.useCallback(
+    (elem?: Entity): boolean => {
+      if (!elem) return false;
+      if (elem.Type === srcType) return false;
 
-    return (
-      elem.entities
-        ?.map((parent) => lib.find((libElem) => libElem.Type === parent.Type))
-        .filter(recursiveCheck).length === 0
-    );
-  };
+      return elem.entities?.map((parent) => lib.find((libElem) => libElem.Type === parent.Type)).filter(recursiveCheck).length === 0;
+    },
+    [srcType, lib],
+  );
 
   const types = React.useMemo(
     () =>
@@ -227,7 +171,7 @@ const Footer: React.FC<{ srcType: string }> = ({ srcType }) => {
         .filter((elem) => elem.Type !== srcType)
         .filter(recursiveCheck)
         .map((elem) => elem.Type),
-    [lib, srcType]
+    [lib, srcType, recursiveCheck],
   );
 
   if (!srcType) {
@@ -259,9 +203,7 @@ export const App1: React.FC = () => {
   const screenWidth = 1280;
   const screenHeight = 720;
 
-  const [srcType, setSrcType0] = React.useState(
-    localStorage.getItem("srcType") ?? ""
-  );
+  const [srcType, setSrcType0] = React.useState(localStorage.getItem("srcType") ?? "");
   const setSrcType = React.useCallback((newSrcType: string) => {
     setSrcType0(newSrcType);
     localStorage.setItem("srcType", newSrcType);
@@ -290,11 +232,7 @@ export const App1: React.FC = () => {
               <UILayoutFooter>
                 <Footer srcType={srcType} />
               </UILayoutFooter>
-              <UILayoutMain>
-                {!!srcType && (
-                  <Main srcType={srcType} setSrcType={setSrcType} />
-                )}
-              </UILayoutMain>
+              <UILayoutMain>{!!srcType && <Main srcType={srcType} setSrcType={setSrcType} />}</UILayoutMain>
             </Layer>
           </Stage>
         </ScreenCtx.Provider>

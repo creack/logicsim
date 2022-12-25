@@ -23,22 +23,8 @@ export const UILayoutHeader: React.FC<{
 
   return (
     <Group x={0} y={0} width={screenWidth} height={screenHeight * 0.07}>
-      <Rect
-        fill="rgb(35, 35, 35)"
-        stroke="black"
-        strokeWidth={1}
-        x={0}
-        y={0}
-        width={screenWidth}
-        height={screenHeight}
-      />
-      <Rect
-        fill="rgb(53, 53, 53)"
-        x={0}
-        y={screenHeight * 0.07}
-        width={screenWidth}
-        height={screenHeight * 0.02}
-      />
+      <Rect fill="rgb(35, 35, 35)" stroke="black" strokeWidth={1} x={0} y={0} width={screenWidth} height={screenHeight} />
+      <Rect fill="rgb(53, 53, 53)" x={0} y={screenHeight * 0.07} width={screenWidth} height={screenHeight * 0.02} />
       {children}
     </Group>
   );
@@ -59,12 +45,7 @@ export const UILayoutFooter: React.FC<{
         width={screenWidth}
         height={screenHeight * 0.02}
       />
-      <Group
-        x={0}
-        y={screenHeight - screenHeight * 0.07}
-        width={screenWidth}
-        height={screenHeight * 0.07}
-      >
+      <Group x={0} y={screenHeight - screenHeight * 0.07} width={screenWidth} height={screenHeight * 0.07}>
         {children}
       </Group>
     </>
@@ -85,17 +66,11 @@ export const UILayoutMain: React.FC<{
   const innerBorderWidth = screenHeight * innerBorderRatio;
 
   const sidePaneWidth = screenWidth * sidePaneWidthRatio;
-  const sidePaneHeight =
-    screenHeight -
-    (screenHeight * headerHeightRatio +
-      screenWidth * outerBorderRatio -
-      (screenHeight * innerBorderRatio) / 2) *
-      2;
+  const sidePaneHeight = screenHeight - (screenHeight * headerHeightRatio + screenWidth * outerBorderRatio - (screenHeight * innerBorderRatio) / 2) * 2;
   const headerHeight = screenHeight * headerHeightRatio;
   const centerPaneX = sidePaneWidth + outerBorderWidth;
   const centerPaneY = headerHeight + outerBorderWidth;
-  const centerPaneWidth =
-    screenWidth * (1 - sidePaneWidthRatio * 2 - outerBorderRatio * 2);
+  const centerPaneWidth = screenWidth * (1 - sidePaneWidthRatio * 2 - outerBorderRatio * 2);
 
   return (
     <PaneCtx.Provider
@@ -125,15 +100,7 @@ export const UILayoutMain: React.FC<{
         width={centerPaneWidth}
         height={sidePaneHeight}
       />
-      <Group
-        x={0}
-        y={
-          screenHeight *
-          (headerHeightRatio + headerBorderRatio + innerBorderRatio * 2)
-        }
-        width={0}
-        height={0}
-      >
+      <Group x={0} y={screenHeight * (headerHeightRatio + headerBorderRatio + innerBorderRatio * 2)} width={0} height={0}>
         {children}
       </Group>
     </PaneCtx.Provider>

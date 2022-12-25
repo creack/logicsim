@@ -42,15 +42,7 @@ export const LogicLabel: React.FC<{
         lineJoin="round"
         stroke={labelStroke}
       />
-      <Text
-        stroke={textStroke}
-        fontSize={fontSize}
-        fill={textColor}
-        text={` ${text} `}
-        align="center"
-        width={width}
-        height={height}
-      />
+      <Text stroke={textStroke} fontSize={fontSize} fill={textColor} text={` ${text} `} align="center" width={width} height={height} />
     </Label>
   );
 };

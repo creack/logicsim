@@ -20,7 +20,7 @@ const TextTransformer: React.FC<{
       fontSize: { value: 26, min: 6, max: 72, step: 1 },
       color: "#000000",
     }),
-    [ui.title]
+    [ui.title],
   );
   React.useEffect(() => {
     setMenu({ fontSize: ui.title.fontSize, color: ui.title.color });
@@ -62,6 +62,7 @@ const TextTransformer: React.FC<{
           if (!node) return;
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
+          console.log("TODO: Implement scale", scaleX, scaleY);
         }}
       />
       {isSelected && <Transformer ref={trRef} rotateEnabled={false} />}
@@ -79,24 +80,21 @@ const RectTransformer: React.FC<{
   const [{ transparent, color }, setMenu] = useControls(
     "Shape Props",
     () => ({
-      transparent:
-        "transparent" in ui.shape && ui.shape.transparent ? true : false,
+      transparent: "transparent" in ui.shape && ui.shape.transparent ? true : false,
       color: {
         value: "color" in ui.shape && ui.shape.color ? ui.shape.color : "#ccc",
         render: (getValue) => !getValue("Shape Props.transparent"),
       },
     }),
-    [ui.shape]
+    [ui.shape],
   );
   React.useEffect(() => {
     setMenu({
-      transparent:
-        "transparent" in ui.shape && ui.shape.transparent ? true : false,
+      transparent: "transparent" in ui.shape && ui.shape.transparent ? true : false,
       color: "color" in ui.shape && ui.shape.color ? ui.shape.color : "#ccc",
     });
   }, [ui.shape, setMenu]);
-  const { centerPaneWidth, sidePaneHeight, innerBorderWidth } =
-    React.useContext(PaneCtx);
+  const { centerPaneWidth, sidePaneHeight, innerBorderWidth } = React.useContext(PaneCtx);
 
   const shapeRef = React.useRef<Konva.Rect>(null);
   const trRef = React.useRef<Konva.Transformer>(null);
@@ -141,7 +139,7 @@ const RectTransformer: React.FC<{
         y,
       });
     },
-    [onChange, shapeProps]
+    [onChange, shapeProps, centerPaneWidth, innerBorderWidth, sidePaneHeight],
   );
 
   const handleOnTransform = React.useCallback(() => {
@@ -186,7 +184,7 @@ const RectTransformer: React.FC<{
       width,
       height,
     });
-  }, []);
+  }, [centerPaneWidth, innerBorderWidth, onChange, shapeProps, sidePaneHeight]);
 
   return (
     <React.Fragment>
@@ -226,8 +224,7 @@ export const ThumbnailEditor: React.FC<{
   inputs: IO[];
   outputs: IO[];
 }> = ({ title, ui, inputs, outputs }) => {
-  const { centerPaneX, centerPaneWidth, innerBorderWidth, sidePaneHeight } =
-    React.useContext(PaneCtx);
+  const { centerPaneX, centerPaneWidth, innerBorderWidth, sidePaneHeight } = React.useContext(PaneCtx);
   const [shapeProps, setShapeProps] = React.useState<Konva.RectConfig>({});
   const [selected, setSelected] = React.useState<"" | "shape" | "title">("");
 
@@ -246,25 +243,15 @@ export const ThumbnailEditor: React.FC<{
       setShapeProps(e);
       console.log("change:", e);
     },
-    [setShapeProps]
+    [setShapeProps],
   );
 
   return (
     <>
       <Group x={centerPaneX + innerBorderWidth * 2} y={innerBorderWidth * 2}>
-        <Rect
-          width={centerPaneWidth}
-          height={sidePaneHeight}
-          onClick={() => setSelected("")}
-        />
+        <Rect width={centerPaneWidth} height={sidePaneHeight} onClick={() => setSelected("")} />
         {inputs.map((elem, i) => (
-          <Circle
-            key={i}
-            fill="blue"
-            radius={10}
-            x={shapeProps.x}
-            y={(shapeProps.y ?? 0) + (shapeProps.height ?? 0) * (elem.y ?? 0)}
-          />
+          <Circle key={i} fill="blue" radius={10} x={shapeProps.x} y={(shapeProps.y ?? 0) + (shapeProps.height ?? 0) * (elem.y ?? 0)} />
         ))}
         {outputs.map((elem, i) => (
           <Circle

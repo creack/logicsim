@@ -30,7 +30,7 @@ export const useDrawConnections = () => {
         drawingPoint: [e.evt.offsetX, e.evt.offsetY],
       });
     },
-    [drawConnection, setDrawConnection]
+    [drawConnection, setDrawConnection],
   );
 
   const handleOnClick = React.useCallback(
@@ -42,7 +42,7 @@ export const useDrawConnections = () => {
         points: [...drawConnection.points, [e.evt.offsetX, e.evt.offsetY]],
       });
     },
-    [drawConnection, setDrawConnection]
+    [drawConnection, setDrawConnection],
   );
 
   const renderedDrawConnection = React.useMemo(
@@ -52,16 +52,13 @@ export const useDrawConnections = () => {
           stroke="black"
           strokeWidth={3}
           tension={0.3}
-          points={[
-            ...drawConnection.points,
-            drawConnection.drawingPoint as [number, number],
-          ]
+          points={[...drawConnection.points, drawConnection.drawingPoint as [number, number]]
             .filter((elem) => !!elem)
             .flat()
             .map((elem, i) => (i % 2 === 0 ? elem : elem - centerPaneY))}
         />
       ),
-    [drawConnection, centerPaneY]
+    [drawConnection, centerPaneY],
   );
 
   return {

@@ -1,0 +1,38 @@
+---
+env:
+  es6: true
+  node: true
+  browser: true
+
+parser: "@typescript-eslint/parser"
+
+parserOptions:
+  ecmaVersion: 2022
+  sourceType: module
+  project: tsconfig.json
+  ecmaFeatures:
+    jsx: true
+
+extends:
+  - eslint:recommended
+  - plugin:react/recommended
+  - plugin:react-hooks/recommended
+  - plugin:@typescript-eslint/recommended
+
+plugins:
+  - prettier
+  - react
+  - react-hooks
+  - "@typescript-eslint"
+
+rules:
+  "@typescript-eslint/no-non-null-assertion": "off"  # Local project. Acceptable.
+
+settings:
+  react:
+    pragma: React
+    version: detect
+
+ignorePatterns:
+  # Ignore config files.
+  - vite.config.ts
