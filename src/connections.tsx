@@ -3,7 +3,7 @@ import { button, useControls } from "leva";
 import React from "react";
 import { Line } from "react-konva";
 import type { drawState } from "./drawConnections";
-import type { Connection, ConnectionIO, EntityInstance } from "./entityInstance";
+import { Connection, ConnectionIO, EntityInstance, formatEntity } from "./entityInstance";
 import { useLibraryDispatch } from "./reducer";
 import { PaneCtx, ScreenCtx } from "./UI";
 
@@ -40,7 +40,9 @@ export const useConnections = (g: EntityInstance, setDrawConnection: React.Dispa
             To: newConn.To,
             points: newConn.points,
           });
-          setConnections((connections) => [...connections, newConn]);
+          if (formatEntity(newConn.From) !== formatEntity(newConn.To)) {
+            setConnections((connections) => [...connections, newConn]);
+          }
         }
         return {
           drawing: !draw.drawing,

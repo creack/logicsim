@@ -167,6 +167,10 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
       );
 
     case "addConnection":
+      if (formatEntity(action.From) === formatEntity(action.To)) {
+        console.warn("Trying to create a connection from and to the same point. Discarding.");
+        return state;
+      }
       return state.map((parent) =>
         parent.Type === action.parentType
           ? {
