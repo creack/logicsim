@@ -154,7 +154,7 @@ export class EntityInstance {
     if (this.root.Type === "nand") {
       const output = !(!!this.root.inputs?.[0]?.value && !!this.root.inputs?.[1]?.value);
       if (this.root.outputs?.[0].value !== output) {
-        this.setValue("outputs", "0", output);
+        this.setValue("outputs", this.root.outputs?.[0].title, output);
       }
     }
   }

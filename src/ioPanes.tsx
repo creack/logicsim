@@ -17,8 +17,9 @@ const IOElement: React.FC<{
   setPos?: (title: string, newPos: number) => void;
   color: string;
   onClickConnection?: (target: ConnectionIO, x: number, y: number) => void;
+  onClickInput?: (target: ConnectionIO) => void;
   setConnections?: (hdlr: (connections: Connection[]) => Connection[]) => void;
-}> = ({ mode, pos, value, paneWidth, height, parentType, title, setPos, color, onClickConnection, setConnections }) => {
+}> = ({ mode, pos, value, paneWidth, height, parentType, title, setPos, color, onClickConnection, onClickInput, setConnections }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const { centerPaneX, outerBorderWidth, sidePaneHeight } = React.useContext(PaneCtx);
   const dispatch = useLibraryDispatch();
@@ -103,6 +104,15 @@ const IOElement: React.FC<{
     [title, onClickConnection, connectionRadius, mode],
   );
 
+  const handleInputOnClick = React.useCallback(
+    (e: KonvaEventObject<MouseEvent>) => {
+      if (!title) return;
+      e.cancelBubble = true;
+      onClickInput?.({ Type: "", title: "", subtype: "inputs", subtitle: title });
+    },
+    [title, onClickInput],
+  );
+
   const handleDblClick = React.useCallback(() => {
     dispatch({
       type: "updateIOPane",
@@ -132,6 +142,7 @@ const IOElement: React.FC<{
         x={mode === "inputs" ? centerPaneX - x : -(paneWidth - width) / 2 - outerBorderWidth}
         y={height / 2}
         radius={toggleRadius}
+        onClick={mode === "inputs" ? handleInputOnClick : undefined}
       />
       <Circle
         fill="black"
@@ -162,8 +173,9 @@ const IOPane: React.FC<{
   setIOPos: (title: string, newPos: number) => void;
   addIO: (pos: number) => void;
   onClickConnection: (target: ConnectionIO, x: number, y: number) => void;
+  onClickInput?: (target: ConnectionIO) => void;
   setConnections?: (hdlr: (connections: Connection[]) => Connection[]) => void;
-}> = ({ parentType, mode, ios = [], setIOPos, addIO, onClickConnection, setConnections }) => {
+}> = ({ parentType, mode, ios = [], setIOPos, addIO, onClickConnection, onClickInput, setConnections }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const { sidePaneWidth, sidePaneHeight } = React.useContext(PaneCtx);
   const [pos, setPos] = React.useState<number | null>(null);
@@ -215,6 +227,7 @@ const IOPane: React.FC<{
           setPos={setIOPos}
           color="rgb(58, 58, 58)"
           onClickConnection={onClickConnection}
+          onClickInput={onClickInput}
           setConnections={setConnections}
         />
       ))}
@@ -230,7 +243,8 @@ export const IOPanes: React.FC<{
   setOutputs: React.Dispatch<React.SetStateAction<IO[]>>;
   setConnections: (hdlr: (connections: Connection[]) => Connection[]) => void;
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
-}> = ({ parentType, setConnections, handleOnClickConnection, inputs, setInputs, outputs, setOutputs }) => {
+  handleOnClickInput: (target: ConnectionIO) => void;
+}> = ({ parentType, setConnections, handleOnClickConnection, handleOnClickInput, inputs, setInputs, outputs, setOutputs }) => {
   const dispatch = useLibraryDispatch();
 
   const setInputPos = React.useCallback(
@@ -307,6 +321,7 @@ export const IOPanes: React.FC<{
         setIOPos={setInputPos}
         addIO={addInput}
         onClickConnection={handleOnClickConnection}
+        onClickInput={handleOnClickInput}
         setConnections={setConnections}
       />
       <IOPane
@@ -334,19 +349,27 @@ export const useIOPanes = (
     setOutputs(g.root.outputs ?? []);
   }, [g, setInputs, setOutputs]);
 
+  const handleOnClickInput = React.useCallback(
+    (target: ConnectionIO) => {
+      g.setValue("inputs", target.subtitle, true);
+    },
+    [g],
+  );
+
   const renderedIOPanes = React.useMemo(
     () => (
       <IOPanes
         parentType={g.root.Type}
         setConnections={setConnections}
         handleOnClickConnection={handleOnClickConnection}
+        handleOnClickInput={handleOnClickInput}
         inputs={inputs}
         setInputs={setInputs}
         outputs={outputs}
         setOutputs={setOutputs}
       />
     ),
-    [setConnections, handleOnClickConnection, setInputs, inputs, setOutputs, outputs, g.root.Type],
+    [setConnections, handleOnClickConnection, handleOnClickInput, setInputs, inputs, setOutputs, outputs, g.root.Type],
   );
 
   return { inputs, outputs, renderedIOPanes };
