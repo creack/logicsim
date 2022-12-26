@@ -229,6 +229,7 @@ const IOPane: React.FC<{
           onClickConnection={onClickConnection}
           onClickInput={onClickInput}
           setConnections={setConnections}
+          value={io.value}
         />
       ))}
     </Group>
@@ -351,7 +352,9 @@ export const useIOPanes = (
 
   const handleOnClickInput = React.useCallback(
     (target: ConnectionIO) => {
-      g.setValue("inputs", target.subtitle, true);
+      const prevValue = g.root.inputs.find((elem) => elem.title === target.subtitle)?.value;
+      g.setValue("inputs", target.subtitle, !prevValue);
+      setInputs((inputs) => inputs.map((elem) => (elem.title === target.subtitle ? { ...elem, value: !prevValue } : elem)));
     },
     [g],
   );
