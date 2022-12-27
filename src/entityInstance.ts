@@ -90,6 +90,7 @@ export const formatEntity = (entity: { Type?: string; title?: string; subtype?: 
 
 export class EntityInstance {
   root: Omit<Entity, "ui">;
+  parent?: EntityInstance;
   entities: EntityInstance[] = [];
 
   actions: Array<{
@@ -98,17 +99,28 @@ export class EntityInstance {
     description: string;
   }> = [];
 
-  constructor(root: Omit<Entity, "ui"> | undefined, lib: Omit<Entity, "ui">[], indent = 0) {
+  parentTree(): string {
+    if (!this.parent) return this.root.Type;
+    return this.parent.parentTree() + ">" + this.root.Type;
+  }
+  // Expected any.
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  log(...args: any[]) {
+    console.log(`[${this.parentTree()}]`, ...args);
+  }
+
+  constructor(root: Omit<Entity, "ui"> | undefined, lib: Omit<Entity, "ui">[], parent?: EntityInstance, indent = 0) {
     if (!root) {
       throw new Error(`missing root entity`);
     }
     this.root = root;
+    this.parent = parent;
     this.entities = (this.root.entities ?? []).map((elem) => {
       const ret = lib.find((libEntry) => libEntry.Type === elem.Type);
       if (!ret) {
         throw new Error(`entity type '${elem.Type}' not found`);
       }
-      return new EntityInstance({ ...ret, ...elem }, lib, indent + 1);
+      return new EntityInstance({ ...ret, ...elem }, lib, this, indent + 1);
     });
 
     this.root.connections?.forEach((connection) => {
@@ -160,6 +172,7 @@ export class EntityInstance {
   }
 
   setValue(Type: string, title: string, value: boolean) {
+    this.log(`Settings value ${this.root.Type}:${this.root.title}:${Type}:${title} to ${value}.`);
     const ret = (Type === "inputs" ? this.root.inputs : this.root.outputs)?.find((elem) => elem.title === title);
     if (!ret) {
       throw new Error(`${Type} '${title}' not found in ${formatEntity(this.root)}`);
