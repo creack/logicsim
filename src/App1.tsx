@@ -68,7 +68,10 @@ const Main: React.FC<{
   const base = useLookupLibrary(srcType);
   const g = React.useMemo(() => {
     if (!base) throw new Error(`${srcType} not found in lib`);
-    return new EntityInstance(base, lib);
+    console.log("---------- Root new EntityInstance ----------");
+    const out = new EntityInstance(base, lib);
+    console.log("---------- !Root new EntityInstance ----------", out);
+    return out;
   }, [base, srcType, lib]);
 
   const { handleOnClick, handleOnMouseMove, setDrawConnection, renderedDrawConnection } = useDrawConnections();
