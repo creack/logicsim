@@ -355,17 +355,17 @@ export const useIOPanes = (
     (target: ConnectionIO) => {
       const prevValue = g.root.inputs.find((elem) => elem.title === target.subtitle)?.value;
       g.setValue("inputs", target.subtitle, !prevValue);
-      // setInputs((inputs) => inputs.map((elem) => (elem.title === target.subtitle ? { ...elem, value: !prevValue } : elem)));
-      // setInputs((inputs) => [...inputs]);
       forceRerender((prev) => !prev);
     },
     [g],
   );
 
   React.useEffect(() => {
-    console.log("G.root.inputs changed", g.root.inputs);
     setInputs(g.root.inputs);
   }, [g.root.inputs]);
+  React.useEffect(() => {
+    setOutputs(g.root.outputs);
+  }, [g.root.outputs]);
 
   const renderedIOPanes = React.useMemo(
     () => (
