@@ -3,7 +3,7 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { button, useControls } from "leva";
 import React from "react";
 import { Circle, Group, Rect, Text, Transformer } from "react-konva";
-import type { Connection, ConnectionIO, Entity, EntityUI, IO, PartialEntityUI } from "./entityInstance";
+import type { Connection, ConnectionIO, Entity, EntityUI, IO } from "./entityInstance";
 import { EntityInstance, formatEntity } from "./entityInstance";
 import { LogicLabel } from "./Label";
 import { useLibraryDispatch, useLookupLibrary } from "./reducer";
@@ -16,7 +16,8 @@ const IOComponent: React.FC<{
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
   y: number;
   subtitle: string;
-}> = ({ entity, mode, ui, handleOnClickConnection, y, subtitle }) => {
+  value?: boolean;
+}> = ({ entity, mode, ui, handleOnClickConnection, y, subtitle, value }) => {
   const handleOnMouseOver = React.useCallback((e: KonvaEventObject<MouseEvent>) => {
     const prevRadius = parseInt(e.currentTarget.getAttr("radius"));
     e.currentTarget.setAttr("prev_radius", prevRadius);
@@ -58,7 +59,7 @@ const IOComponent: React.FC<{
         text={subtitle}
       />
       <Circle
-        fill="blue"
+        fill={value === undefined ? "white" : !value ? "black" : "red"}
         x={mode === "inputs" ? 0 : ui.shape.width}
         y={ui.shape.height * y}
         radius={ui.pins.radius}
@@ -80,7 +81,16 @@ const IOs: React.FC<{
   const renderedIOs = React.useMemo(
     () =>
       ios.map((io, i) => (
-        <IOComponent key={i} entity={entity} mode={mode} ui={ui} handleOnClickConnection={handleOnClickConnection} subtitle={io.title} y={io.y} />
+        <IOComponent
+          key={i}
+          entity={entity}
+          mode={mode}
+          ui={ui}
+          handleOnClickConnection={handleOnClickConnection}
+          subtitle={io.title}
+          y={io.y}
+          value={io.value}
+        />
       )),
     [entity, mode, handleOnClickConnection, ios, ui],
   );
@@ -146,9 +156,7 @@ const EntityTransformer: React.FC<{
 };
 
 const EntityComponent: React.FC<{
-  entity: Omit<Entity, "ui" | "inputs" | "outputs" | "connections" | "entities"> & {
-    ui: PartialEntityUI;
-  };
+  entity: EntityInstance;
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
   setConnections: React.Dispatch<React.SetStateAction<Connection[]>>;
   setSelected: React.Dispatch<React.SetStateAction<string>>;
@@ -159,19 +167,19 @@ const EntityComponent: React.FC<{
   const { centerPaneX, centerPaneWidth, sidePaneHeight, innerBorderWidth } = React.useContext(PaneCtx);
   const dispatch = useLibraryDispatch();
 
-  const base = useLookupLibrary(entity.Type);
+  const base = useLookupLibrary(entity.root.Type);
   if (!base) {
-    throw new Error(`entity type ${entity.Type} not found in library`);
+    throw new Error(`entity type ${entity.root.Type} not found in library`);
   }
 
   const ui = React.useMemo(
     () =>
       ({
-        pins: { ...base.ui.pins, ...entity.ui.pins },
-        shape: { ...base.ui.shape, ...entity.ui.shape },
-        title: { ...base.ui.title, ...entity.ui.title },
+        pins: { ...base.ui.pins, ...(entity.root as Entity).ui.pins },
+        shape: { ...base.ui.shape, ...(entity.root as Entity).ui.shape },
+        title: { ...base.ui.title, ...(entity.root as Entity).ui.title },
       } as EntityUI),
-    [base.ui, entity.ui],
+    [base.ui, entity],
   );
   if (ui.shape.x < 0 || ui.shape.x > 1) ui.shape.x = 0;
   if (ui.shape.y < 0 || ui.shape.y > 1) ui.shape.y = 0;
@@ -179,9 +187,9 @@ const EntityComponent: React.FC<{
   const handleOnClick = React.useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
       e.cancelBubble = true;
-      setSelected((selected) => (selected !== entity.title ? entity.title : ""));
+      setSelected((selected) => (selected !== entity.root.title ? entity.root.title : ""));
     },
-    [setSelected, entity.title],
+    [setSelected, entity.root.title],
   );
 
   const handleOnDragEnd = React.useCallback(
@@ -192,25 +200,25 @@ const EntityComponent: React.FC<{
       dispatch({
         type: "updateChildEntityCoordinates",
         parentType,
-        childTitle: entity.title,
+        childTitle: entity.root.title,
         x: (pos.x - (centerPaneX + 2 * innerBorderWidth)) / centerPaneWidth,
         y: pos.y / sidePaneHeight,
       });
     },
-    [parentType, entity.title, centerPaneWidth, sidePaneHeight, centerPaneX, innerBorderWidth, dispatch],
+    [parentType, entity.root.title, centerPaneWidth, sidePaneHeight, centerPaneX, innerBorderWidth, dispatch],
   );
 
   const handleOnDragMove = React.useCallback(
     (e: KonvaEventObject<DragEvent>) => {
       // Select the entity if it was not already selected.
-      if (selected !== entity.title) {
-        setSelected(entity.title);
+      if (selected !== entity.root.title) {
+        setSelected(entity.root.title);
       }
 
       // Update connections.
       const pos = e.currentTarget.absolutePosition();
       const handle = (targetIO: ConnectionIO, targetPoints: [number, number]) => {
-        if (targetIO.Type === "entity" && targetIO.title === entity.title) {
+        if (targetIO.Type === "entity" && targetIO.title === entity.root.title) {
           targetPoints[0] = targetIO.subtype === "inputs" ? pos.x / screenWidth : (pos.x + ui.shape.width) / screenWidth;
 
           const targetPin = (targetIO.subtype === "inputs" ? base.inputs : base.outputs)?.find((pin) => pin.title === targetIO.subtitle);
@@ -233,7 +241,7 @@ const EntityComponent: React.FC<{
     [setConnections, ui, base, screenWidth, screenHeight, entity, selected, setSelected],
   );
 
-  const isSelected = selected === entity.title;
+  const isSelected = selected === entity.root.title;
   const shapeRef = React.useRef<Konva.Group>(null);
 
   return (
@@ -245,7 +253,7 @@ const EntityComponent: React.FC<{
         pointerWidth={5}
         pointerHeight={5}
         fontSize={8}
-        text={entity.title}
+        text={entity.root.title}
       />
       <Group
         ref={shapeRef}
@@ -264,7 +272,7 @@ const EntityComponent: React.FC<{
           fill={"transparent" in ui.shape && ui.shape.transparent ? undefined : ui.shape.color}
         />
         <Text
-          text={entity.Type}
+          text={entity.root.Type}
           fontSize={ui.title.fontSize}
           x={ui.title.x}
           y={ui.title.y}
@@ -272,10 +280,10 @@ const EntityComponent: React.FC<{
           scaleY={ui.title.scaleY}
           fill={ui.title.color}
         />
-        <IOs entity={entity} ios={base.inputs} mode="inputs" ui={ui} handleOnClickConnection={handleOnClickConnection} />
-        <IOs entity={entity} ios={base.outputs} mode="outputs" ui={ui} handleOnClickConnection={handleOnClickConnection} />
+        <IOs entity={entity.root} ios={entity.root.inputs} mode="inputs" ui={ui} handleOnClickConnection={handleOnClickConnection} />
+        <IOs entity={entity.root} ios={entity.root.outputs} mode="outputs" ui={ui} handleOnClickConnection={handleOnClickConnection} />
       </Group>
-      {isSelected && <EntityTransformer shapeRef={shapeRef} isSelected={isSelected} ui={ui} title={entity.title} parentType={parentType} />}
+      {isSelected && <EntityTransformer shapeRef={shapeRef} isSelected={isSelected} ui={ui} title={entity.root.title} parentType={parentType} />}
     </>
   );
 };
@@ -285,12 +293,13 @@ export const Entities: React.FC<{
   setConnections: React.Dispatch<React.SetStateAction<Connection[]>>;
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
 }> = ({ g, setConnections, handleOnClickConnection }) => {
-  const [entities, setEntities] = React.useState(g.root.entities ?? []);
+  const [entities, setEntities] = React.useState(g.entities ?? []);
   const [selected, setSelected] = React.useState("");
 
   React.useEffect(() => {
-    setEntities(g.root.entities ?? []);
-  }, [g, setEntities]);
+    setEntities([...(g.entities ?? [])]);
+    console.log(g.entities);
+  }, [g, setEntities, g.root.inputs, g.root.outputs]);
 
   const renderedEntities = React.useMemo(
     () =>

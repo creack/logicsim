@@ -91,31 +91,35 @@ export const formatEntity = (entity: { Type?: string; title?: string; subtype?: 
 export class EntityInstance {
   root: Omit<Entity, "ui">;
   parent?: EntityInstance;
+  disabledLogs = false;
 
   entities: EntityInstance[] = [];
 
   parentTree(): string {
-    if (!this.parent) return this.root.Type;
-    return this.parent.parentTree() + ">" + this.root.Type;
+    if (!this.parent) return this.root.Type + ":" + this.root.title;
+    return this.parent.parentTree() + ">" + this.root.Type + ":" + this.root.title;
   }
   // Expected any.
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   log(...args: any[]) {
+    if (this.disabledLogs) return;
     console.log(`[${this.parentTree()}]`, ...args);
   }
 
-  constructor(root: Omit<Entity, "ui"> | undefined, lib: Omit<Entity, "ui">[], parent?: EntityInstance, indent = 0) {
+  constructor(root: Omit<Entity, "ui"> | undefined, lib: Omit<Entity, "ui">[], parent?: EntityInstance, disabledLogs = false) {
     if (!root) {
       throw new Error(`missing root entity`);
     }
-    this.root = root;
+    this.root = JSON.parse(JSON.stringify(root));
     this.parent = parent;
+    this.disabledLogs = disabledLogs;
+    this.log("New instance");
     this.entities = (this.root.entities ?? []).map((elem) => {
-      const ret = lib.find((libEntry) => libEntry.Type === elem.Type);
+      const ret = (JSON.parse(JSON.stringify(lib)) as typeof lib).find((libEntry) => libEntry.Type === elem.Type);
       if (!ret) {
         throw new Error(`entity type '${elem.Type}' not found`);
       }
-      return new EntityInstance({ ...ret, ...elem }, lib, this, indent + 1);
+      return new EntityInstance({ ...ret, ...elem }, lib, this, disabledLogs);
     });
   }
 
@@ -129,131 +133,50 @@ export class EntityInstance {
   }
 
   setValue(Type: "inputs" | "outputs", title: string, value: boolean) {
-    this.log(`Settings value ${this.root.Type}:${this.root.title}:${Type}:${title} to ${value}.`, this);
+    this.log(`Settings value ${this.root.Type}:${this.root.title}:${Type}:${title} to ${value}.`);
     const ret = this.root[Type].find((elem) => elem.title === title);
     if (!ret) {
       throw new Error(`${Type} '${title}' not found in ${formatEntity(this.root)}`);
     }
     if (ret.value === value) {
-      console.warn(`Value ${Type}:${title} in ${formatEntity(this.root)} already set!`);
+      this.log(`Value ${Type}:${title} in ${formatEntity(this.root)} already set!`);
       return;
     }
     this.root[Type] = this.root[Type].map((elem) => (elem.title === title ? { ...elem, value } : elem));
 
-    // Propagate the value to all connected points on the root.
     this.root.connections
-      .filter(
-        (connection) =>
-          connection.From.Type === "root" &&
-          connection.From.title === this.root.title &&
-          connection.From.subtype === Type &&
-          connection.From.subtitle === title,
-      )
-      .forEach((connection) => {
-        this.root.connections
-          .filter((c) => c !== connection)
-          .filter(
-            (c) =>
-              c.From.Type === connection.To.Type &&
-              c.From.title === connection.To.title &&
-              c.From.subtype === connection.To.subtype &&
-              c.From.subtitle === connection.To.subtitle,
-          )
-          .forEach((c) => {
-            this.setValue(c.To.subtype, c.To.subtitle, value);
-          });
-
-        this.root.connections
-          .filter((c) => c !== connection)
-          .filter(
-            (c) =>
-              c.To.Type === connection.To.Type &&
-              c.To.title === connection.To.title &&
-              c.To.subtype === connection.To.subtype &&
-              c.To.subtitle === connection.To.subtitle,
-          )
-          .forEach((c) => {
-            this.setValue(c.From.subtype, c.From.subtitle, value);
-          });
+      .filter((c) => formatEntity(c.From) === `root:${this.root.Type}:${Type}:${title}`)
+      .forEach((c) => {
+        const target = c.To.Type === "entity" ? this.entities.find((elem) => elem.root.title === c.To.title) : this;
+        if (!target) throw new Error(`connected target not found from ${formatEntity(c.From)} to ${formatEntity(c.To)}`);
+        this.log(`-- Setting ${c.To.subtype}:${c.To.subtitle} to ${value} because connection.From ${formatEntity(c.From)} matched.`);
+        target.setValue(c.To.subtype, c.To.subtitle, value);
       });
 
     this.root.connections
-      .filter(
-        (connection) =>
-          connection.To.Type === "root" && connection.To.title === this.root.title && connection.To.subtype === Type && connection.To.subtitle === title,
-      )
-      .forEach((connection) => {
-        this.root.connections
-          .filter((c) => c !== connection)
-          .filter(
-            (c) =>
-              c.From.Type === connection.From.Type &&
-              c.From.title === connection.From.title &&
-              c.From.subtype === connection.From.subtype &&
-              c.From.subtitle === connection.From.subtitle,
-          )
-          .forEach((c) => {
-            this.setValue(c.To.subtype, c.To.subtitle, value);
-          });
-        this.root.connections
-          .filter((c) => c !== connection)
-          .filter(
-            (c) =>
-              c.To.Type === connection.From.Type &&
-              c.To.title === connection.From.title &&
-              c.To.subtype === connection.From.subtype &&
-              c.To.subtitle === connection.From.subtitle,
-          )
-          .forEach((c) => {
-            this.setValue(c.From.subtype, c.From.subtitle, value);
-          });
+      .filter((c) => formatEntity(c.To) === `root:${this.root.Type}:${Type}:${title}`)
+      .forEach((c) => {
+        const target = c.From.Type === "entity" ? this.entities.find((elem) => elem.root.title === c.From.title) : this;
+        if (!target) throw new Error(`connected target not found from ${formatEntity(c.From)} to ${formatEntity(c.To)}`);
+        target.setValue(c.From.subtype, c.From.subtitle, value);
+      });
+
+    this.parent?.root.connections
+      .filter((c) => formatEntity(c.From) === `entity:${this.root.title}:${Type}:${title}`)
+      .forEach((c) => {
+        const target = c.To.Type === "entity" ? this.parent?.entities.find((elem) => elem.root.title === c.To.title) : this.parent;
+        if (!target) throw new Error(`connected target not found from ${formatEntity(c.From)} to ${formatEntity(c.To)}`);
+        target.setValue(c.To.subtype, c.To.subtitle, value);
+      });
+
+    this.parent?.root.connections
+      .filter((c) => formatEntity(c.To) === `entity:${this.root.title}:${Type}:${title}`)
+      .forEach((c) => {
+        const target = c.From.Type === "entity" ? this.parent?.entities.find((elem) => elem.root.title === c.From.title) : this.parent;
+        if (!target) throw new Error(`connected target not found from ${formatEntity(c.From)} to ${formatEntity(c.To)}`);
+        target.setValue(c.From.subtype, c.From.subtitle, value);
       });
 
     this.run();
-
-    return;
-
-    this.root.connections
-      .filter(
-        (connection) =>
-          connection.From.Type === "root" &&
-          connection.From.title === this.root.title &&
-          connection.From.subtype === Type &&
-          connection.From.subtitle === title,
-      )
-      .forEach((connection) => {
-        const target = connection.To.Type === "root" ? this : this.entities.find((e) => e.root.title === connection.To.title);
-        target?.setValue(connection.To.subtype, connection.To.subtitle, value);
-        try {
-          this.setValue(connection.From.subtype, connection.From.subtitle, value);
-        } catch (e) {
-          console.log("ignore", e);
-        }
-        try {
-          this.parent?.setValue(connection.From.subtype, connection.From.subtitle, value);
-        } catch (e) {
-          console.log("ignore", e);
-        }
-      });
-
-    this.root.connections
-      .filter(
-        (connection) =>
-          connection.To.Type === "root" && connection.To.title === this.root.title && connection.To.subtype === Type && connection.To.subtitle === title,
-      )
-      .forEach((connection) => {
-        const target = connection.From.Type === "root" ? this : this.entities.find((e) => e.root.title === connection.From.title);
-        target?.setValue(connection.From.subtype, connection.From.subtitle, value);
-        try {
-          this.setValue(connection.To.subtype, connection.To.subtitle, value);
-        } catch (e) {
-          console.log("ignore", e);
-        }
-        try {
-          this.parent?.setValue(connection.To.subtype, connection.To.subtitle, value);
-        } catch (e) {
-          console.log("ignore", e);
-        }
-      });
   }
 }
