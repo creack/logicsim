@@ -35,6 +35,11 @@ type actionTypes =
       To?: ConnectionIO;
     }
   | {
+      type: "updateConnections";
+      parentType: string;
+      connections: Connection[];
+    }
+  | {
       type: "updateIOPane";
       parentType: string;
       mode: "inputs" | "outputs";
@@ -131,6 +136,7 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
 
     case "updateChildEntityCoordinates":
       lookupChildTarget(state, action); // Throws if parent of child is missing.
+
       return state.map((parent) =>
         parent.Type === action.parentType
           ? {
@@ -150,6 +156,16 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
                     }
                   : child,
               ),
+            }
+          : parent,
+      );
+
+    case "updateConnections":
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              connections: JSON.parse(JSON.stringify(action.connections)),
             }
           : parent,
       );

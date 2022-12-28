@@ -204,8 +204,17 @@ const EntityComponent: React.FC<{
         x: (pos.x - (centerPaneX + 2 * innerBorderWidth)) / centerPaneWidth,
         y: pos.y / sidePaneHeight,
       });
+
+      setConnections((connections) => {
+        dispatch({
+          type: "updateConnections",
+          parentType,
+          connections,
+        });
+        return connections;
+      });
     },
-    [parentType, entity.root.title, centerPaneWidth, sidePaneHeight, centerPaneX, innerBorderWidth, dispatch],
+    [parentType, entity.root.title, centerPaneWidth, sidePaneHeight, centerPaneX, innerBorderWidth, dispatch, setConnections],
   );
 
   const handleOnDragMove = React.useCallback(

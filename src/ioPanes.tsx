@@ -41,8 +41,17 @@ const IOElement: React.FC<{
         title,
         y: (e.currentTarget.y() + height / 2) / sidePaneHeight,
       });
+
+      setConnections?.((connections) => {
+        dispatch({
+          type: "updateConnections",
+          parentType,
+          connections,
+        });
+        return connections;
+      });
     },
-    [parentType, mode, title, height, sidePaneHeight, dispatch],
+    [parentType, mode, title, height, sidePaneHeight, dispatch, setConnections],
   );
 
   const handleDragMove = React.useCallback(
