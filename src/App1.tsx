@@ -68,9 +68,7 @@ const Main: React.FC<{
   const base = useLookupLibrary(srcType);
   const g = React.useMemo(() => {
     if (!base) throw new Error(`${srcType} not found in lib`);
-    console.log("---------- Root new EntityInstance ----------");
-    const out = new EntityInstance(base, lib);
-    console.log("---------- !Root new EntityInstance ----------", out);
+    const out = new EntityInstance(base, lib, undefined, true);
     return out;
   }, [base, srcType, lib]);
 
@@ -151,6 +149,22 @@ const Header: React.FC<{
   );
 };
 
+const deepSearchType: (srcType: string, lib: Entity[]) => (e: Entity) => boolean = (srcType, lib) => {
+  return (e) => {
+    if (e.Type === srcType) {
+      return false;
+    }
+    if (e.entities.find((elem) => elem.Type === srcType)) {
+      return false;
+    }
+    const m = e.entities.map((elem) => lib.find((child) => child.Type === elem.Type) as Entity);
+    if (m.find((elem) => elem.entities.find((child) => child.Type === srcType))) {
+      return false;
+    }
+    return !!m.filter(deepSearchType(srcType, lib));
+  };
+};
+
 const Footer: React.FC<{ srcType: string }> = ({ srcType }) => {
   const { screenWidth } = React.useContext(ScreenCtx);
 
@@ -158,24 +172,7 @@ const Footer: React.FC<{ srcType: string }> = ({ srcType }) => {
 
   const lib = useLibrary();
 
-  const recursiveCheck = React.useCallback(
-    (elem?: Entity): boolean => {
-      if (!elem) return false;
-      if (elem.Type === srcType) return false;
-
-      return elem.entities?.map((parent) => lib.find((libElem) => libElem.Type === parent.Type)).filter(recursiveCheck).length === 0;
-    },
-    [srcType, lib],
-  );
-
-  const types = React.useMemo(
-    () =>
-      lib
-        .filter((elem) => elem.Type !== srcType)
-        .filter(recursiveCheck)
-        .map((elem) => elem.Type),
-    [lib, srcType, recursiveCheck],
-  );
+  const types = React.useMemo(() => lib.filter(deepSearchType(srcType, lib)).map((elem) => elem.Type), [lib, srcType]);
 
   if (!srcType) {
     return null;

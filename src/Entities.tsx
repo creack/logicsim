@@ -307,7 +307,6 @@ export const Entities: React.FC<{
 
   React.useEffect(() => {
     setEntities([...(g.entities ?? [])]);
-    console.log(g.entities);
   }, [g, setEntities, g.root.inputs, g.root.outputs]);
 
   const renderedEntities = React.useMemo(
