@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { Box } from "konva/lib/shapes/Transformer";
-import { useControls } from "leva";
+import { LevaInputs, useControls } from "leva";
 import React from "react";
 import { Circle, Group, Rect, Text, Transformer } from "react-konva";
 import type { EntityUI, IO } from "./entityInstance";
@@ -21,10 +21,23 @@ const TextTransformer: React.FC<{
   const [{ fontSize, color }, setMenu] = useControls(
     "Title Props",
     () => ({
-      fontSize: { value: 26, min: 6, max: 72, step: 1 },
-      color: "#000000",
+      fontSize: {
+        value: 26,
+        min: 6,
+        max: 72,
+        step: 1,
+        onEditEnd: (value: number) => {
+          dispatch({ type: "updateThumbnailUITextProps", parentType, color: ui.title.color, fontSize: value });
+        },
+      },
+      color: {
+        value: ui.title.color,
+        onEditEnd: (value: string) => {
+          dispatch({ type: "updateThumbnailUITextProps", parentType, color: value, fontSize: ui.title.fontSize });
+        },
+      },
     }),
-    [ui.title],
+    [ui.title, parentType],
   );
   React.useEffect(() => {
     setMenu({ fontSize: ui.title.fontSize, color: ui.title.color });
@@ -96,16 +109,26 @@ const RectTransformer: React.FC<{
   ui: EntityUI;
   parentType: string;
 }> = ({ shapeProps, isSelected, onChange, setSelected, ui, parentType }) => {
+  const dispatch = useLibraryDispatch();
   const [{ transparent, color }, setMenu] = useControls(
     "Shape Props",
     () => ({
-      transparent: "transparent" in ui.shape && ui.shape.transparent ? true : false,
+      transparent: {
+        value: "transparent" in ui.shape && ui.shape.transparent ? true : false,
+        onEditEnd: (value: boolean) => {
+          dispatch({ type: "updateThumbnailUIShapeProps", parentType, color: value ? undefined : ui.shape.color });
+        },
+      },
       color: {
         value: "color" in ui.shape && ui.shape.color ? ui.shape.color : "#ccc",
+        type: LevaInputs.COLOR,
         render: (getValue) => !getValue("Shape Props.transparent"),
+        onEditEnd: (value: string) => {
+          dispatch({ type: "updateThumbnailUIShapeProps", parentType, color: value });
+        },
       },
     }),
-    [ui.shape],
+    [ui.shape, parentType],
   );
   React.useEffect(() => {
     setMenu({
@@ -126,8 +149,6 @@ const RectTransformer: React.FC<{
       trRef.current.getLayer()?.batchDraw();
     }
   }, [isSelected]);
-
-  const dispatch = useLibraryDispatch();
 
   const handleDrag = React.useCallback(
     (e: KonvaEventObject<DragEvent>) => {

@@ -10,6 +10,7 @@ type actionTypes =
   | { type: "updateRootTitle"; parentType: string; title: string }
   | { type: "newEntity"; parentType: string; Type: string }
   | { type: "updateRootThumbnail"; parentType: string; x: number; y: number; width: number; height: number }
+  | { type: "updateThumbnailUIShapeProps"; parentType: string; color: undefined | string }
   | { type: "updateThumbnailUITextCoordinates"; parentType: string; x: number; y: number }
   | { type: "updateThumbnailUITextProps"; parentType: string; fontSize: number; color: string }
   | { type: "updateThumbnailUIPins"; parentType: string; radius: number; color: string }
@@ -149,6 +150,23 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
                   y: action.y,
                   width: action.width,
                   height: action.height,
+                },
+              },
+            }
+          : parent,
+      );
+
+    case "updateThumbnailUIShapeProps":
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              ui: {
+                ...parent.ui,
+                shape: {
+                  ...parent.ui.shape,
+                  transparent: action.color === undefined,
+                  color: action.color,
                 },
               },
             }
