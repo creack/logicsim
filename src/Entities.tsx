@@ -280,15 +280,7 @@ const EntityComponent: React.FC<{
           strokeEnabled
           fill={"transparent" in ui.shape && ui.shape.transparent ? undefined : ui.shape.color}
         />
-        <Text
-          text={entity.root.Type}
-          fontSize={ui.title.fontSize}
-          x={ui.title.x}
-          y={ui.title.y}
-          scaleX={ui.title.scaleX}
-          scaleY={ui.title.scaleY}
-          fill={ui.title.color}
-        />
+        <Text text={entity.root.Type} fontSize={ui.title.fontSize} x={ui.title.x} y={ui.title.y} fill={ui.title.color} />
         <IOs entity={entity.root} ios={entity.root.inputs} mode="inputs" ui={ui} handleOnClickConnection={handleOnClickConnection} />
         <IOs entity={entity.root} ios={entity.root.outputs} mode="outputs" ui={ui} handleOnClickConnection={handleOnClickConnection} />
       </Group>

@@ -42,6 +42,68 @@
     }
   },
   {
+    "Type": "raw8segment",
+    "title": "raw8segment",
+    "inputs": [
+      {
+        "title": "0",
+        "y": 0.1
+      },
+      {
+        "title": "1",
+        "y": 0.2
+      },
+      {
+        "title": "2",
+        "y": 0.3
+      },
+      {
+        "title": "3",
+        "y": 0.4
+      },
+      {
+        "title": "4",
+        "y": 0.5
+      },
+      {
+        "title": "5",
+        "y": 0.6
+      },
+      {
+        "title": "6",
+        "y": 0.7
+      },
+      {
+        "title": "7",
+        "y": 0.8
+      }
+    ],
+    "outputs": [],
+    "entities": [],
+    "connections": [],
+    "ui": {
+      "component": "raw8segment",
+      "pins": {
+        "radius": 5
+      },
+      "shape": {
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 50,
+        "color": "purple"
+      },
+      "title": {
+        "x": 0,
+        "y": 0,
+        "fontSize": 28,
+        "scaleX": 1,
+        "scaleY": 1,
+        "color": "#fff"
+      }
+    }
+  },
+  {
     "Type": "not",
     "title": "not",
     "ui": {

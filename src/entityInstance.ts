@@ -23,6 +23,7 @@ export type Connection = {
 };
 
 export type EntityUI = {
+  component?: string;
   pins: {
     radius: number;
     color: string;

@@ -11,11 +11,12 @@ import { LogicLabel } from "./Label";
 import { LibraryCtx, LibraryDispatchCtx, useLibrary, useLibraryDispatch, useLibraryReducer, useLookupLibrary } from "./reducer";
 import { ThumbnailEditor } from "./ThumbnailEditor";
 import { PaneCtx, ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from "./UI";
+import { RawEightSegmentsDisplay } from "./Components";
 
 const Main: React.FC<{
   srcType: string;
   setSrcType: (newSrcType: string) => void;
-  viewMode: string;
+  viewMode: "main" | "thumbnail";
   setViewMode: (viewMode: "main" | "thumbnail") => void;
 }> = ({ srcType, setSrcType, viewMode, setViewMode }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
@@ -66,7 +67,7 @@ const Main: React.FC<{
   );
 
   const lib = useLibrary();
-  const base = useLookupLibrary(srcType);
+  const base = useLookupLibrary(srcType)!;
   const g = React.useMemo(() => {
     if (!base) throw new Error(`${srcType} not found in lib`);
     const out = new EntityInstance(base, lib, undefined, true);
@@ -78,10 +79,14 @@ const Main: React.FC<{
 
   const { inputs, outputs, renderedIOPanes } = useIOPanes(g, setConnections, handleOnClickConnection, viewMode);
 
+  console.log(">>>", base.ui.component);
+
   return (
     <Group width={screenWidth} height={screenHeight} onMouseMove={handleOnMouseMove} onClick={handleOnClick}>
       <LogicLabel x={centerPaneX + centerPaneWidth / 2.1} y={-innerBorderWidth - outerBorderWidth} fontSize={outerBorderWidth} text={title} />
       <Rect x={centerPaneX} y={0} width={centerPaneWidth} height={sidePaneHeight} />
+
+      <RawEightSegmentsDisplay inputs={g.root.inputs} />
 
       {viewMode === "main" && (
         <>
@@ -92,7 +97,7 @@ const Main: React.FC<{
       )}
       {renderedIOPanes}
 
-      {viewMode === "thumbnail" && <ThumbnailEditor ui={{ ...base!.ui }} title={title} inputs={inputs} outputs={outputs} />}
+      {viewMode === "thumbnail" && <ThumbnailEditor ui={{ ...base.ui }} title={title} inputs={inputs} outputs={outputs} />}
     </Group>
   );
 };
@@ -205,7 +210,7 @@ export const App1: React.FC = () => {
   const screenHeight = 720;
 
   const [srcType, setSrcType0] = React.useState(localStorage.getItem("srcType") ?? "");
-  const [viewMode, setViewMode0] = React.useState<"thumbnail" | "main">((localStorage.getItem("viewMode") as "thumbnail" | "main" | "undefined") ?? "main");
+  const [viewMode, setViewMode0] = React.useState<"thumbnail" | "main">((localStorage.getItem("viewMode") as "thumbnail" | "main" | undefined) ?? "main");
 
   const setViewMode = React.useCallback((newViewMode: "thumbnail" | "main") => {
     setViewMode0(newViewMode);
