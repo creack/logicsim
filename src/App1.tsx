@@ -205,16 +205,21 @@ export const App1: React.FC = () => {
   const screenHeight = 720;
 
   const [srcType, setSrcType0] = React.useState(localStorage.getItem("srcType") ?? "");
-  const setSrcType = React.useCallback((newSrcType: string) => {
-    setSrcType0(newSrcType);
-    localStorage.setItem("srcType", newSrcType);
-  }, []);
-
   const [viewMode, setViewMode0] = React.useState<"thumbnail" | "main">((localStorage.getItem("viewMode") as "thumbnail" | "main" | "undefined") ?? "main");
+
   const setViewMode = React.useCallback((newViewMode: "thumbnail" | "main") => {
     setViewMode0(newViewMode);
     localStorage.setItem("viewMode", newViewMode);
   }, []);
+
+  const setSrcType = React.useCallback(
+    (newSrcType: string) => {
+      setSrcType0(newSrcType);
+      localStorage.setItem("srcType", newSrcType);
+      setViewMode("main");
+    },
+    [setViewMode],
+  );
 
   const [lib, dispatch] = useLibraryReducer();
 
