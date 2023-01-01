@@ -4,6 +4,7 @@ import { useControls } from "leva";
 import React from "react";
 import { Circle, Group, Rect, Text, Transformer } from "react-konva";
 import type { EntityUI, IO } from "./entityInstance";
+import { useLibraryDispatch } from "./reducer";
 import { PaneCtx } from "./UI";
 
 const TextTransformer: React.FC<{
@@ -13,6 +14,7 @@ const TextTransformer: React.FC<{
   x: number;
   y: number;
   ui: EntityUI;
+  parentType: string;
 }> = ({ text, isSelected = false, onSelect, x, y, ui }) => {
   const [{ fontSize, color }, setMenu] = useControls(
     "Title Props",
@@ -76,7 +78,8 @@ const RectTransformer: React.FC<{
   onSelect: () => void;
   onChange: (newProps: Konva.RectConfig) => void;
   ui: EntityUI;
-}> = ({ shapeProps, isSelected, onChange, onSelect, ui }) => {
+  parentType: string;
+}> = ({ shapeProps, isSelected, onChange, onSelect, ui, parentType }) => {
   const [{ transparent, color }, setMenu] = useControls(
     "Shape Props",
     () => ({
@@ -107,6 +110,49 @@ const RectTransformer: React.FC<{
       trRef.current.getLayer()?.batchDraw();
     }
   }, [isSelected]);
+
+  const dispatch = useLibraryDispatch();
+
+  const handleOnDragEnd = React.useCallback(
+    (e: KonvaEventObject<DragEvent>) => {
+      return;
+      let x = e.currentTarget.x();
+      let y = e.currentTarget.y();
+      const width = e.currentTarget.width();
+      const height = e.currentTarget.height();
+
+      if (x < 0) {
+        x = 0;
+        e.currentTarget.x(0);
+      }
+      if (y < 0) {
+        y = 0;
+        e.currentTarget.y(0);
+      }
+
+      if (x + width > centerPaneWidth - 4 * innerBorderWidth) {
+        x = centerPaneWidth - 4 * innerBorderWidth - width;
+        e.currentTarget.x(x);
+      }
+      if (y + height > sidePaneHeight - 4 * innerBorderWidth) {
+        y = sidePaneHeight - 4 * innerBorderWidth - height;
+        e.currentTarget.y(y);
+      }
+
+      dispatch({
+        type: "updateRootThumbnail",
+        parentType,
+        ...{
+          ...shapeProps,
+          x,
+          y,
+          width,
+          height,
+        },
+      });
+    },
+    [dispatch, parentType, centerPaneWidth, innerBorderWidth, sidePaneHeight, shapeProps],
+  );
 
   const handleOnDragMove = React.useCallback(
     (e: KonvaEventObject<DragEvent>) => {
@@ -198,6 +244,7 @@ const RectTransformer: React.FC<{
         draggable
         onDragStart={onSelect}
         onDragMove={handleOnDragMove}
+        onDragEnd={handleOnDragEnd}
         onTransform={handleOnTransform}
       />
       {isSelected && (
@@ -238,25 +285,36 @@ export const ThumbnailEditor: React.FC<{
     });
   }, [ui.shape]);
 
+  const dispatch = useLibraryDispatch();
+
   const handleOnShapeChange = React.useCallback(
     (e: Konva.RectConfig) => {
       setShapeProps(e);
       console.log("change:", e);
+
+      dispatch({
+        type: "updateRootThumbnail",
+        parentType: title,
+        x: e.x,
+        y: e.y,
+        width: e.width,
+        height: e.height,
+      });
     },
-    [setShapeProps],
+    [setShapeProps, dispatch, title],
   );
 
   return (
     <>
-      <Group x={centerPaneX + innerBorderWidth * 2} y={innerBorderWidth * 2}>
+      <Group x={centerPaneX + innerBorderWidth * 2 + ui.shape.x} y={innerBorderWidth * 2 + ui.shape.y}>
         <Rect width={centerPaneWidth} height={sidePaneHeight} onClick={() => setSelected("")} />
         {inputs.map((elem, i) => (
-          <Circle key={i} fill="blue" radius={10} x={shapeProps.x} y={(shapeProps.y ?? 0) + (shapeProps.height ?? 0) * (elem.y ?? 0)} />
+          <Circle key={i} fill="white" radius={10} x={shapeProps.x} y={(shapeProps.y ?? 0) + (shapeProps.height ?? 0) * (elem.y ?? 0)} />
         ))}
         {outputs.map((elem, i) => (
           <Circle
             key={i}
-            fill="blue"
+            fill="white"
             radius={10}
             x={(shapeProps.x ?? 0) + (shapeProps.width ?? 0)}
             y={(shapeProps.y ?? 0) + (shapeProps.height ?? 0) * (elem.y ?? 0)}
@@ -270,6 +328,7 @@ export const ThumbnailEditor: React.FC<{
           }}
           onChange={handleOnShapeChange}
           ui={ui}
+          parentType={title}
         />
         <TextTransformer
           ui={ui}
@@ -280,6 +339,7 @@ export const ThumbnailEditor: React.FC<{
           onSelect={() => {
             setSelected("title");
           }}
+          parentType={title}
         />
       </Group>
     </>

@@ -9,6 +9,7 @@ type actionTypes =
   | { type: "newRoot"; title: string }
   | { type: "updateRootTitle"; parentType: string; title: string }
   | { type: "newEntity"; parentType: string; Type: string }
+  | { type: "updateRootThumbnail"; parentType: string; x: number; y: number; width: number; height: number }
   | {
       type: "updateChildEntityCoordinates";
       parentType: string;
@@ -133,6 +134,25 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
             : parent,
         );
       })();
+
+    case "updateRootThumbnail":
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              ui: {
+                ...parent.ui,
+                shape: {
+                  ...parent.ui.shape,
+                  x: action.x,
+                  y: action.y,
+                  width: action.width,
+                  height: action.height,
+                },
+              },
+            }
+          : parent,
+      );
 
     case "updateChildEntityCoordinates":
       lookupChildTarget(state, action); // Throws if parent of child is missing.

@@ -147,7 +147,7 @@ const ConnectionComponent: React.FC<{
             e.currentTarget.setAttr("strokeWidth", prevSize);
           }
         }}
-        tension={0.3}
+        tension={0.2}
         points={[connection.points!.From, ...(connection.points?.intermediaries ?? []), connection.points!.To]
           .flat()
           .map((elem, i) => (i % 2 === 0 ? elem * screenWidth : elem * screenHeight - centerPaneY))}

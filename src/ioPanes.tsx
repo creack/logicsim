@@ -19,7 +19,8 @@ const IOElement: React.FC<{
   onClickConnection?: (target: ConnectionIO, x: number, y: number) => void;
   onClickInput?: (target: ConnectionIO) => void;
   setConnections?: (hdlr: (connections: Connection[]) => Connection[]) => void;
-}> = ({ mode, pos, value, paneWidth, height, parentType, title, setPos, color, onClickConnection, onClickInput, setConnections }) => {
+  viewMode: "thumbnail" | "main";
+}> = ({ mode, pos, value, paneWidth, height, parentType, title, setPos, color, onClickConnection, onClickInput, setConnections, viewMode }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const { centerPaneX, outerBorderWidth, sidePaneHeight } = React.useContext(PaneCtx);
   const dispatch = useLibraryDispatch();
@@ -136,32 +137,36 @@ const IOElement: React.FC<{
   return (
     <Group x={x} y={pos * sidePaneHeight - height / 2} draggable onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
       <Rect fill={color} width={width} height={height} onMouseOver={handleDragOnMouseOver} onMouseOut={handleDragOnMouseOut} onDblClick={handleDblClick} />
-      <Line
-        stroke="black"
-        strokeWidth={1}
-        points={[
-          mode === "inputs" ? centerPaneX - x : -(paneWidth - width) / 2 - outerBorderWidth,
-          height / 2,
-          mode === "inputs" ? centerPaneX - x + toggleRadius * 2.5 : -(paneWidth - width) / 2 - outerBorderWidth - toggleRadius * 2.5,
-          height / 2,
-        ]}
-      />
+      {viewMode === "main" && (
+        <Line
+          stroke="black"
+          strokeWidth={1}
+          points={[
+            mode === "inputs" ? centerPaneX - x : -(paneWidth - width) / 2 - outerBorderWidth,
+            height / 2,
+            mode === "inputs" ? centerPaneX - x + toggleRadius * 2.5 : -(paneWidth - width) / 2 - outerBorderWidth - toggleRadius * 2.5,
+            height / 2,
+          ]}
+        />
+      )}
       <Circle
         fill={value === undefined ? "white" : value ? "red" : "black"}
         x={mode === "inputs" ? centerPaneX - x : -(paneWidth - width) / 2 - outerBorderWidth}
         y={height / 2}
         radius={toggleRadius}
-        onClick={mode === "inputs" ? handleInputOnClick : undefined}
+        onClick={viewMode === "main" && mode === "inputs" ? handleInputOnClick : undefined}
       />
-      <Circle
-        fill="black"
-        x={mode === "inputs" ? centerPaneX - x + toggleRadius * 2.5 : -(paneWidth - width) / 2 - outerBorderWidth - toggleRadius * 2.5}
-        y={height / 2}
-        radius={connectionRadius}
-        onMouseOver={handleConnectionOnMouseOver}
-        onMouseOut={handleConnectionOnMouseOut}
-        onClick={handleConnectionOnClick}
-      />
+      {viewMode === "main" && (
+        <Circle
+          fill="black"
+          x={mode === "inputs" ? centerPaneX - x + toggleRadius * 2.5 : -(paneWidth - width) / 2 - outerBorderWidth - toggleRadius * 2.5}
+          y={height / 2}
+          radius={connectionRadius}
+          onMouseOver={viewMode === "main" ? handleConnectionOnMouseOver : undefined}
+          onMouseOut={viewMode === "main" ? handleConnectionOnMouseOut : undefined}
+          onClick={handleConnectionOnClick}
+        />
+      )}
       <LogicLabel
         x={mode === "inputs" ? centerPaneX - x + toggleRadius * 2.5 : -(paneWidth - width) / 2 - outerBorderWidth - toggleRadius * 2.5}
         y={height / 2 - 5}
@@ -184,7 +189,8 @@ const IOPane: React.FC<{
   onClickConnection: (target: ConnectionIO, x: number, y: number) => void;
   onClickInput?: (target: ConnectionIO) => void;
   setConnections?: (hdlr: (connections: Connection[]) => Connection[]) => void;
-}> = ({ parentType, mode, ios = [], setIOPos, addIO, onClickConnection, onClickInput, setConnections }) => {
+  viewMode: "thumbnail" | "main";
+}> = ({ parentType, mode, ios = [], setIOPos, addIO, onClickConnection, onClickInput, setConnections, viewMode }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
   const { sidePaneWidth, sidePaneHeight } = React.useContext(PaneCtx);
   const [pos, setPos] = React.useState<number | null>(null);
@@ -223,7 +229,9 @@ const IOPane: React.FC<{
   return (
     <Group onMouseMove={handleOnMouseMove} onMouseLeave={handleOnMouseLeave} onClick={handleOnClick}>
       <Rect x={mode === "inputs" ? 0 : screenWidth - sidePaneWidth} y={0} width={sidePaneWidth} height={screenHeight - screenHeight * (0.07 + 0.02)} />
-      {!!pos && <IOElement parentType={parentType} mode={mode} paneWidth={sidePaneWidth} height={ioHeight} pos={pos} color="rgb(126, 126, 126)" />}
+      {viewMode === "main" && !!pos && (
+        <IOElement parentType={parentType} mode={mode} paneWidth={sidePaneWidth} height={ioHeight} pos={pos} color="rgb(126, 126, 126)" />
+      )}
       {ios.map((io, i) => (
         <IOElement
           key={i}
@@ -235,10 +243,11 @@ const IOPane: React.FC<{
           title={io.title}
           setPos={setIOPos}
           color="rgb(58, 58, 58)"
-          onClickConnection={onClickConnection}
-          onClickInput={onClickInput}
-          setConnections={setConnections}
+          onClickConnection={viewMode === "thumbnail" ? undefined : onClickConnection}
+          onClickInput={viewMode === "thumbnail" ? undefined : onClickInput}
+          setConnections={viewMode === "thumbnail" ? undefined : setConnections}
           value={io.value}
+          viewMode={viewMode}
         />
       ))}
     </Group>
@@ -254,7 +263,8 @@ export const IOPanes: React.FC<{
   setConnections: (hdlr: (connections: Connection[]) => Connection[]) => void;
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
   handleOnClickInput: (target: ConnectionIO) => void;
-}> = ({ parentType, setConnections, handleOnClickConnection, handleOnClickInput, inputs, setInputs, outputs, setOutputs }) => {
+  viewMode: "thumbnail" | "main";
+}> = ({ parentType, setConnections, handleOnClickConnection, handleOnClickInput, inputs, setInputs, outputs, setOutputs, viewMode }) => {
   const dispatch = useLibraryDispatch();
 
   const setInputPos = React.useCallback(
@@ -333,6 +343,7 @@ export const IOPanes: React.FC<{
         onClickConnection={handleOnClickConnection}
         onClickInput={handleOnClickInput}
         setConnections={setConnections}
+        viewMode={viewMode}
       />
       <IOPane
         parentType={parentType}
@@ -342,6 +353,7 @@ export const IOPanes: React.FC<{
         addIO={addOutput}
         onClickConnection={handleOnClickConnection}
         setConnections={setConnections}
+        viewMode={viewMode}
       />
     </>
   );
@@ -351,6 +363,7 @@ export const useIOPanes = (
   g: EntityInstance,
   setConnections: (hdlr: (connections: Connection[]) => Connection[]) => void,
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void,
+  viewMode: "thumbnail" | "main",
 ) => {
   const [, forceRerender] = React.useState(true);
   const [inputs, setInputs] = React.useState(g.root.inputs ?? []);
@@ -387,9 +400,10 @@ export const useIOPanes = (
         setInputs={setInputs}
         outputs={outputs}
         setOutputs={setOutputs}
+        viewMode={viewMode}
       />
     ),
-    [setConnections, handleOnClickConnection, handleOnClickInput, setInputs, inputs, setOutputs, outputs, g.root.Type],
+    [setConnections, handleOnClickConnection, handleOnClickInput, setInputs, inputs, setOutputs, outputs, g.root.Type, viewMode],
   );
 
   return { inputs, outputs, renderedIOPanes };

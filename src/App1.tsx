@@ -15,9 +15,10 @@ import { PaneCtx, ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from
 const Main: React.FC<{
   srcType: string;
   setSrcType: (newSrcType: string) => void;
-}> = ({ srcType, setSrcType }) => {
+  viewMode: string;
+  setViewMode: (viewMode: "main" | "thumbnail") => void;
+}> = ({ srcType, setSrcType, viewMode, setViewMode }) => {
   const { screenWidth, screenHeight } = React.useContext(ScreenCtx);
-  const [viewMode, setViewMode] = React.useState<"main" | "thumbnail">("main");
   const { centerPaneX, centerPaneWidth, innerBorderWidth, outerBorderWidth, sidePaneHeight } = React.useContext(PaneCtx);
 
   const dispatch = useLibraryDispatch();
@@ -75,7 +76,7 @@ const Main: React.FC<{
   const { handleOnClick, handleOnMouseMove, setDrawConnection, renderedDrawConnection } = useDrawConnections();
   const { setConnections, handleOnClickConnection, renderedConnections } = useConnections(g, setDrawConnection);
 
-  const { inputs, outputs, renderedIOPanes } = useIOPanes(g, setConnections, handleOnClickConnection);
+  const { inputs, outputs, renderedIOPanes } = useIOPanes(g, setConnections, handleOnClickConnection, viewMode);
 
   return (
     <Group width={screenWidth} height={screenHeight} onMouseMove={handleOnMouseMove} onClick={handleOnClick}>
@@ -209,6 +210,12 @@ export const App1: React.FC = () => {
     localStorage.setItem("srcType", newSrcType);
   }, []);
 
+  const [viewMode, setViewMode0] = React.useState<"thumbnail" | "main">((localStorage.getItem("viewMode") as "thumbnail" | "main" | "undefined") ?? "main");
+  const setViewMode = React.useCallback((newViewMode: "thumbnail" | "main") => {
+    setViewMode0(newViewMode);
+    localStorage.setItem("viewMode", newViewMode);
+  }, []);
+
   const [lib, dispatch] = useLibraryReducer();
 
   useControls("Settings", {
@@ -232,7 +239,7 @@ export const App1: React.FC = () => {
               <UILayoutFooter>
                 <Footer srcType={srcType} />
               </UILayoutFooter>
-              <UILayoutMain>{!!srcType && <Main srcType={srcType} setSrcType={setSrcType} />}</UILayoutMain>
+              <UILayoutMain>{!!srcType && <Main srcType={srcType} setSrcType={setSrcType} viewMode={viewMode} setViewMode={setViewMode} />}</UILayoutMain>
             </Layer>
           </Stage>
         </ScreenCtx.Provider>
