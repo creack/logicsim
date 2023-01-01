@@ -235,6 +235,21 @@ const RectTransformer: React.FC<{
     });
   }, [centerPaneWidth, innerBorderWidth, onChange, shapeProps, sidePaneHeight]);
 
+  const handleOnTransformEnd = React.useCallback(
+    (e: KonvaEventObject<Event>) => {
+      dispatch({
+        type: "updateRootThumbnail",
+        parentType,
+        ...{
+          ...shapeProps,
+          width: e.currentTarget.width(),
+          height: e.currentTarget.height(),
+        },
+      });
+    },
+    [dispatch, parentType, shapeProps],
+  );
+
   const toggleSelect = React.useCallback(() => {
     setSelected((prev) => (prev === "shape" ? "" : "shape"));
   }, [setSelected]);
@@ -265,6 +280,7 @@ const RectTransformer: React.FC<{
         onDragMove={handleOnDragMove}
         onDragEnd={handleOnDragEnd}
         onTransform={handleOnTransform}
+        onTransformEnd={handleOnTransformEnd}
       />
       {isSelected && <Transformer ref={trRef} rotateEnabled={false} keepRatio={false} boundBoxFunc={boundBoxFunc} />}
     </React.Fragment>
