@@ -398,8 +398,8 @@ export const ThumbnailEditor: React.FC<{
       />
       <TextTransformer
         ui={ui}
-        x={ui.shape.x + ui.title.x}
-        y={ui.shape.y + ui.title.y}
+        x={shapeProps.x + ui.title.x}
+        y={shapeProps.y + ui.title.y}
         text={title}
         isSelected={selected === "title"}
         setSelected={setSelected}
