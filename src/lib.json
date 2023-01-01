@@ -49,8 +49,8 @@
         "radius": 5
       },
       "shape": {
-        "x": 0,
-        "y": 0,
+        "x": 199,
+        "y": 38,
         "width": 90,
         "height": 30,
         "transparent": false,
@@ -83,13 +83,89 @@
         "title": "nand1",
         "ui": {
           "shape": {
-            "x": 0,
-            "y": 0
+            "x": 0.3770084422657953,
+            "y": 0.42436687200547574
           }
         }
       }
     ],
-    "connections": []
+    "connections": [
+      {
+        "From": {
+          "Type": "root",
+          "title": "not",
+          "subtype": "inputs",
+          "subtitle": "notIn0"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.5023611111111111
+          ],
+          "To": [
+            0.39271875000000006,
+            0.46041666666666664
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "To": {
+          "Type": "root",
+          "title": "not",
+          "subtype": "inputs",
+          "subtitle": "notIn0"
+        },
+        "points": {
+          "From": [
+            0.39271875000000006,
+            0.4909722222222222
+          ],
+          "To": [
+            0.060531250000000016,
+            0.5023611111111111
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "root",
+          "title": "not",
+          "subtype": "outputs",
+          "subtitle": "notOut0"
+        },
+        "points": {
+          "From": [
+            0.47084375000000006,
+            0.4756944444444444
+          ],
+          "To": [
+            0.93946875,
+            0.5023611111111111
+          ],
+          "intermediaries": []
+        }
+      }
+    ]
   },
   {
     "Type": "and",
@@ -99,10 +175,10 @@
         "radius": 5
       },
       "shape": {
-        "x": 10,
-        "y": 10,
-        "width": 300,
-        "height": 120,
+        "x": 185,
+        "y": 76,
+        "width": 299.9999999999996,
+        "height": 252.42551469506617,
         "transparent": true
       },
       "title": {
@@ -167,8 +243,14 @@
           "subtitle": "nandIn0"
         },
         "points": {
-          "From": [0.060531250000000016, 0.32379444444444444],
-          "To": [0.322025, 0.4974555555555555],
+          "From": [
+            0.060531250000000016,
+            0.32379444444444444
+          ],
+          "To": [
+            0.322025,
+            0.4974555555555555
+          ],
           "intermediaries": []
         }
       },
@@ -186,8 +268,14 @@
           "subtitle": "andIn1"
         },
         "points": {
-          "From": [0.322025, 0.528011111111111],
-          "To": [0.060531250000000016, 0.6809277777777777],
+          "From": [
+            0.322025,
+            0.528011111111111
+          ],
+          "To": [
+            0.060531250000000016,
+            0.6809277777777777
+          ],
           "intermediaries": []
         }
       },
@@ -205,8 +293,14 @@
           "subtitle": "notIn0"
         },
         "points": {
-          "From": [0.40015, 0.5127333333333333],
-          "To": [0.6892249999999999, 0.49884444444444437],
+          "From": [
+            0.40015,
+            0.5127333333333333
+          ],
+          "To": [
+            0.6892249999999999,
+            0.49884444444444437
+          ],
           "intermediaries": []
         }
       },
@@ -224,11 +318,1227 @@
           "subtitle": "andOut0"
         },
         "points": {
-          "From": [0.7595374999999999, 0.49884444444444437],
-          "To": [0.93946875, 0.5023611111111111],
+          "From": [
+            0.7595374999999999,
+            0.49884444444444437
+          ],
+          "To": [
+            0.93946875,
+            0.5023611111111111
+          ],
           "intermediaries": []
         }
       }
     ]
+  },
+  {
+    "Type": "true",
+    "title": "true",
+    "inputs": [
+      {
+        "title": "1",
+        "y": 0.33880903490759756
+      }
+    ],
+    "outputs": [
+      {
+        "title": "1",
+        "y": 0.4671457905544148
+      }
+    ],
+    "entities": [
+      {
+        "Type": "nand",
+        "title": "nand0",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.3616898148148148,
+            "y": 0.4123887748117728
+          }
+        }
+      },
+      {
+        "Type": "nand",
+        "title": "nand1",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.5752995642701525,
+            "y": 0.5047912388774812
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "From": {
+          "Type": "root",
+          "title": "true",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.3715277777777778
+          ],
+          "To": [
+            0.37865625,
+            0.45069444444444445
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "true",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.3715277777777778
+          ],
+          "To": [
+            0.37865625,
+            0.48125
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "root",
+          "title": "true",
+          "subtype": "outputs",
+          "subtitle": "1"
+        },
+        "points": {
+          "From": [
+            0.6528750000000001,
+            0.5409722222222222
+          ],
+          "To": [
+            0.93946875,
+            0.4756944444444444
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "true",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.3715277777777778
+          ],
+          "To": [
+            0.5747500000000001,
+            0.5256944444444445
+          ],
+          "intermediaries": [
+            [
+              0.38828125,
+              0.3125
+            ],
+            [
+              0.546875,
+              0.39861111111111114
+            ],
+            [
+              0.55234375,
+              0.5041666666666667
+            ]
+          ]
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "points": {
+          "From": [
+            0.45678125,
+            0.46597222222222223
+          ],
+          "To": [
+            0.5747500000000001,
+            0.55625
+          ],
+          "intermediaries": [
+            [
+              0.5203125,
+              0.5305555555555556
+            ]
+          ]
+        }
+      }
+    ],
+    "ui": {
+      "pins": {
+        "radius": 10
+      },
+      "shape": {
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "transparent": true,
+        "color": ""
+      },
+      "title": {
+        "x": 0,
+        "y": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "fontSize": 18,
+        "color": "white"
+      }
+    }
+  },
+  {
+    "Type": "false",
+    "title": "false",
+    "inputs": [
+      {
+        "title": "1",
+        "y": 0.44490075290896647
+      }
+    ],
+    "outputs": [
+      {
+        "title": "1",
+        "y": 0.49281314168377827
+      }
+    ],
+    "entities": [
+      {
+        "Type": "true",
+        "title": "true0",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.3616898148148148,
+            "y": 0.3405201916495551
+          }
+        }
+      },
+      {
+        "Type": "not",
+        "title": "not0",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.5370029956427016,
+            "y": 0.4260780287474333
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "From": {
+          "Type": "root",
+          "title": "false",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "true0",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.4576388888888889
+          ],
+          "To": [
+            0.37865625,
+            0.41650125484827744
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "true0",
+          "subtype": "outputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "not0",
+          "subtype": "inputs",
+          "subtitle": "notIn0"
+        },
+        "points": {
+          "From": [
+            0.45678125,
+            0.43432580424366873
+          ],
+          "To": [
+            0.5395937500000001,
+            0.46319444444444446
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "not0",
+          "subtype": "outputs",
+          "subtitle": "notOut0"
+        },
+        "To": {
+          "Type": "root",
+          "title": "false",
+          "subtype": "outputs",
+          "subtitle": "1"
+        },
+        "points": {
+          "From": [
+            0.6099062500000001,
+            0.46319444444444446
+          ],
+          "To": [
+            0.93946875,
+            0.4965277777777778
+          ],
+          "intermediaries": []
+        }
+      }
+    ],
+    "ui": {
+      "pins": {
+        "radius": 10
+      },
+      "shape": {
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "transparent": true,
+        "color": ""
+      },
+      "title": {
+        "x": 0,
+        "y": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "fontSize": 18,
+        "color": "white"
+      }
+    }
+  },
+  {
+    "Type": "or",
+    "title": "or",
+    "inputs": [
+      {
+        "title": "1",
+        "y": 0.30629705681040387
+      },
+      {
+        "title": "2",
+        "y": 0.7306639288158796
+      }
+    ],
+    "outputs": [
+      {
+        "title": "1",
+        "y": 0.47056810403832994
+      }
+    ],
+    "entities": [
+      {
+        "Type": "nand",
+        "title": "nand0",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.47828159041394336,
+            "y": 0.45003422313483915
+          }
+        }
+      },
+      {
+        "Type": "nand",
+        "title": "nand1",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.16424972766884532,
+            "y": 0.6245722108145106
+          }
+        }
+      },
+      {
+        "Type": "nand",
+        "title": "nand2",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.16169662309368193,
+            "y": 0.30458590006844627
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "root",
+          "title": "or",
+          "subtype": "outputs",
+          "subtitle": "1"
+        },
+        "points": {
+          "From": [
+            0.5638125,
+            0.4965277777777778
+          ],
+          "To": [
+            0.93946875,
+            0.47847222222222224
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "or",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand2",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.3451388888888889
+          ],
+          "To": [
+            0.19506250000000003,
+            0.36319444444444443
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "or",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand2",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.3451388888888889
+          ],
+          "To": [
+            0.19506250000000003,
+            0.39375
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand2",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.2731875,
+            0.3784722222222222
+          ],
+          "To": [
+            0.48568750000000005,
+            0.48125
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "or",
+          "subtype": "inputs",
+          "subtitle": "2"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.6895833333333333
+          ],
+          "To": [
+            0.19740625,
+            0.6229166666666667
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "or",
+          "subtype": "inputs",
+          "subtitle": "2"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.6895833333333333
+          ],
+          "To": [
+            0.19740625,
+            0.6534722222222222
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "points": {
+          "From": [
+            0.27553125,
+            0.6381944444444444
+          ],
+          "To": [
+            0.48568750000000005,
+            0.5118055555555555
+          ],
+          "intermediaries": []
+        }
+      }
+    ],
+    "ui": {
+      "pins": {
+        "radius": 10
+      },
+      "shape": {
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "transparent": true,
+        "color": ""
+      },
+      "title": {
+        "x": 0,
+        "y": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "fontSize": 18,
+        "color": "white"
+      }
+    }
+  },
+  {
+    "Type": "nor",
+    "title": "nor",
+    "inputs": [
+      {
+        "title": "1",
+        "y": 0.2566735112936345
+      },
+      {
+        "title": "2",
+        "y": 0.5595482546201233
+      }
+    ],
+    "outputs": [
+      {
+        "title": "1",
+        "y": 0.37132101300479126
+      }
+    ],
+    "entities": [
+      {
+        "Type": "or",
+        "title": "or0",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.15063316993464052,
+            "y": 0.27891854893908286
+          }
+        }
+      },
+      {
+        "Type": "not",
+        "title": "not0",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.42381535947712423,
+            "y": 0.26865160848733743
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "From": {
+          "Type": "root",
+          "title": "nor",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "or0",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.30486111111111114
+          ],
+          "To": [
+            0.18490625,
+            0.3619857023347784
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "nor",
+          "subtype": "inputs",
+          "subtitle": "2"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "or0",
+          "subtype": "inputs",
+          "subtitle": "2"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.5506944444444445
+          ],
+          "To": [
+            0.18490625,
+            0.42092554566887225
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "or0",
+          "subtype": "outputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "not0",
+          "subtype": "inputs",
+          "subtitle": "notIn0"
+        },
+        "points": {
+          "From": [
+            0.26303124999999994,
+            0.3848011255608792
+          ],
+          "To": [
+            0.43568750000000006,
+            0.33541666666666664
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "nor",
+          "subtype": "outputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "not0",
+          "subtype": "outputs",
+          "subtitle": "notOut0"
+        },
+        "points": {
+          "From": [
+            0.93946875,
+            0.39791666666666664
+          ],
+          "To": [
+            0.506,
+            0.33541666666666664
+          ],
+          "intermediaries": []
+        }
+      }
+    ],
+    "ui": {
+      "pins": {
+        "radius": 10
+      },
+      "shape": {
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "transparent": true,
+        "color": ""
+      },
+      "title": {
+        "x": 0,
+        "y": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "fontSize": 18,
+        "color": "white"
+      }
+    }
+  },
+  {
+    "Type": "xor",
+    "title": "xor",
+    "inputs": [
+      {
+        "title": "1",
+        "y": 0.34394250513347024
+      },
+      {
+        "title": "2",
+        "y": 0.6913073237508556
+      }
+    ],
+    "outputs": [
+      {
+        "title": "1",
+        "y": 0.5390143737166324
+      }
+    ],
+    "entities": [
+      {
+        "Type": "nand",
+        "title": "nand0",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.08255038126361657,
+            "y": 0.2720739219712526
+          }
+        }
+      },
+      {
+        "Type": "nand",
+        "title": "nand1",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.15914351851851852,
+            "y": 0.7203969883641341
+          }
+        }
+      },
+      {
+        "Type": "nand",
+        "title": "nand2",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.33530773420479304,
+            "y": 0.7067077344284737
+          }
+        }
+      },
+      {
+        "Type": "nand",
+        "title": "nand3",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.3293504901960784,
+            "y": 0.4346338124572211
+          }
+        }
+      },
+      {
+        "Type": "nand",
+        "title": "nand4",
+        "ui": {
+          "shape": {
+            "transparent": false,
+            "color": "red",
+            "x": 0.49530228758169936,
+            "y": 0.525325119780972
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "From": {
+          "Type": "root",
+          "title": "xor",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.37569444444444444
+          ],
+          "To": [
+            0.12240625000000001,
+            0.3368055555555556
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "xor",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.37569444444444444
+          ],
+          "To": [
+            0.12240625000000001,
+            0.36736111111111114
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "xor",
+          "subtype": "inputs",
+          "subtitle": "2"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.6576388888888889
+          ],
+          "To": [
+            0.19271875,
+            0.7006944444444444
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "xor",
+          "subtype": "inputs",
+          "subtitle": "2"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.6576388888888889
+          ],
+          "To": [
+            0.19271875,
+            0.73125
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand0",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand3",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.20053125,
+            0.35208333333333336
+          ],
+          "To": [
+            0.34896875,
+            0.46875
+          ],
+          "intermediaries": [
+            [
+              0.215625,
+              0.35555555555555557
+            ],
+            [
+              0.21796875,
+              0.4583333333333333
+            ]
+          ]
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "xor",
+          "subtype": "inputs",
+          "subtitle": "2"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand3",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.6576388888888889
+          ],
+          "To": [
+            0.34896875,
+            0.49930555555555556
+          ],
+          "intermediaries": [
+            [
+              0.06171875,
+              0.5972222222222222
+            ],
+            [
+              0.18359375,
+              0.5902777777777778
+            ],
+            [
+              0.1859375,
+              0.5347222222222222
+            ]
+          ]
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand1",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand2",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.27084375,
+            0.7159722222222222
+          ],
+          "To": [
+            0.3544375,
+            0.6895833333333333
+          ],
+          "intermediaries": []
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "xor",
+          "subtype": "inputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand2",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "points": {
+          "From": [
+            0.060531250000000016,
+            0.37569444444444444
+          ],
+          "To": [
+            0.3544375,
+            0.7201388888888889
+          ],
+          "intermediaries": [
+            [
+              0.09765625,
+              0.45
+            ],
+            [
+              0.1015625,
+              0.7847222222222222
+            ],
+            [
+              0.31796875,
+              0.8083333333333333
+            ],
+            [
+              0.3203125,
+              0.725
+            ]
+          ]
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand3",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand4",
+          "subtype": "inputs",
+          "subtitle": "nandIn0"
+        },
+        "points": {
+          "From": [
+            0.42709375000000005,
+            0.4840277777777778
+          ],
+          "To": [
+            0.5013125,
+            0.5423611111111111
+          ],
+          "intermediaries": [
+            [
+              0.44921875,
+              0.4777777777777778
+            ],
+            [
+              0.45,
+              0.5388888888888889
+            ]
+          ]
+        }
+      },
+      {
+        "From": {
+          "Type": "entity",
+          "title": "nand2",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand4",
+          "subtype": "inputs",
+          "subtitle": "nandIn1"
+        },
+        "points": {
+          "From": [
+            0.43256250000000007,
+            0.7048611111111112
+          ],
+          "To": [
+            0.5013125,
+            0.5729166666666666
+          ],
+          "intermediaries": [
+            [
+              0.46015625,
+              0.7111111111111111
+            ],
+            [
+              0.45859375,
+              0.575
+            ]
+          ]
+        }
+      },
+      {
+        "From": {
+          "Type": "root",
+          "title": "xor",
+          "subtype": "outputs",
+          "subtitle": "1"
+        },
+        "To": {
+          "Type": "entity",
+          "title": "nand4",
+          "subtype": "outputs",
+          "subtitle": "nandOut0"
+        },
+        "points": {
+          "From": [
+            0.93946875,
+            0.5340277777777777
+          ],
+          "To": [
+            0.5794375,
+            0.5576388888888889
+          ],
+          "intermediaries": []
+        }
+      }
+    ],
+    "ui": {
+      "pins": {
+        "radius": 10
+      },
+      "shape": {
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "transparent": true,
+        "color": ""
+      },
+      "title": {
+        "x": 0,
+        "y": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "fontSize": 18,
+        "color": "white"
+      }
+    }
   }
 ]
