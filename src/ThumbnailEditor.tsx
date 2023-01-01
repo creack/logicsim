@@ -288,6 +288,36 @@ export const ThumbnailEditor: React.FC<{
   const { centerPaneX, centerPaneWidth, innerBorderWidth, sidePaneHeight } = React.useContext(PaneCtx);
   const [shapeProps, setShapeProps] = React.useState<RectConfig>({ ...ui.shape });
   const [selected, setSelected] = React.useState<"" | "shape" | "title">("");
+  const dispatch = useLibraryDispatch();
+
+  const handlePinChange = React.useCallback(
+    (value: string, path: string) => {
+      switch (path) {
+        case "Pins.radius":
+          dispatch({ type: "updateThumbnailUIPins", parentType: title, radius: parseInt(value), color: ui.pins.color });
+          return;
+        case "Pins.color":
+          dispatch({ type: "updateThumbnailUIPins", parentType: title, radius: ui.pins.radius, color: value });
+          return;
+        default:
+          throw new Error(`unknown pinChange path '${path}'`);
+      }
+    },
+    [ui.pins.radius, ui.pins.color, dispatch, title],
+  );
+
+  const [{ radius: pinRadius, color: pinColor }, setPinMenu] = useControls(
+    "Pins",
+    () => ({
+      radius: { value: ui.pins.radius, min: 5, max: 30, step: 1, onEditEnd: handlePinChange },
+      color: { value: ui.pins.color ?? "white", onEditEnd: handlePinChange },
+    }),
+    [ui.pins.radius, ui.pins.color],
+  );
+
+  React.useEffect(() => {
+    setPinMenu({ radius: ui.pins.radius, color: ui.pins.color ?? "white" });
+  }, [ui.pins.radius, ui.pins.color, setPinMenu]);
 
   React.useEffect(() => {
     setShapeProps({
@@ -300,14 +330,16 @@ export const ThumbnailEditor: React.FC<{
   }, [ui.shape]);
 
   const inputComponents = React.useMemo(
-    () => inputs.map((elem, i) => <Circle key={i} fill="white" radius={10} x={shapeProps.x} y={shapeProps.y + shapeProps.height * elem.y} />),
-    [inputs, shapeProps],
+    () => inputs.map((elem, i) => <Circle key={i} fill={pinColor} radius={pinRadius} x={shapeProps.x} y={shapeProps.y + shapeProps.height * elem.y} />),
+    [inputs, shapeProps.x, shapeProps.y, shapeProps.height, pinRadius, pinColor],
   );
 
   const outputComponents = React.useMemo(
     () =>
-      outputs.map((elem, i) => <Circle key={i} fill="white" radius={10} x={shapeProps.x + shapeProps.width} y={shapeProps.y + shapeProps.height * elem.y} />),
-    [outputs, shapeProps],
+      outputs.map((elem, i) => (
+        <Circle key={i} fill={pinColor} radius={pinRadius} x={shapeProps.x + shapeProps.width} y={shapeProps.y + shapeProps.height * elem.y} />
+      )),
+    [outputs, shapeProps.x, shapeProps.y, shapeProps.height, shapeProps.width, pinRadius, pinColor],
   );
 
   const unselect = React.useCallback(() => {

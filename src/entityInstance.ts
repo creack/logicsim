@@ -25,6 +25,7 @@ export type Connection = {
 export type EntityUI = {
   pins: {
     radius: number;
+    color: string;
   };
   shape: {
     x: number;

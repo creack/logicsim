@@ -10,6 +10,7 @@ type actionTypes =
   | { type: "updateRootTitle"; parentType: string; title: string }
   | { type: "newEntity"; parentType: string; Type: string }
   | { type: "updateRootThumbnail"; parentType: string; x: number; y: number; width: number; height: number }
+  | { type: "updateThumbnailUIPins"; parentType: string; radius: number; color: string }
   | {
       type: "updateChildEntityCoordinates";
       parentType: string;
@@ -57,7 +58,7 @@ const newRoot = (title: string): Entity => ({
   entities: [],
   connections: [],
   ui: {
-    pins: { radius: 10 },
+    pins: { radius: 10, color: "white" },
     shape: {
       x: 0,
       y: 0,
@@ -148,6 +149,23 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
                   y: action.y,
                   width: action.width,
                   height: action.height,
+                },
+              },
+            }
+          : parent,
+      );
+
+    case "updateThumbnailUIPins":
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              ui: {
+                ...parent.ui,
+                pins: {
+                  ...parent.ui.pins,
+                  radius: action.radius,
+                  color: action.color,
                 },
               },
             }
