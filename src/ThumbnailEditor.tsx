@@ -1,5 +1,6 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
+import { Box } from "konva/lib/shapes/Transformer";
 import { useControls } from "leva";
 import React from "react";
 import { Circle, Group, Rect, Text, Transformer } from "react-konva";
@@ -10,12 +11,12 @@ import { PaneCtx } from "./UI";
 const TextTransformer: React.FC<{
   text: string;
   isSelected?: boolean;
-  onSelect: () => void;
+  setSelected: React.Dispatch<React.SetStateAction<"" | "title" | "shape">>;
   x: number;
   y: number;
   ui: EntityUI;
   parentType: string;
-}> = ({ text, isSelected = false, onSelect, x, y, ui }) => {
+}> = ({ text, isSelected = false, setSelected, x, y, ui }) => {
   const [{ fontSize, color }, setMenu] = useControls(
     "Title Props",
     () => ({
@@ -41,6 +42,32 @@ const TextTransformer: React.FC<{
     }
   }, [isSelected]);
 
+  const toggleSelect = React.useCallback(() => {
+    setSelected((prev) => (prev === "title" ? "" : "title"));
+  }, [setSelected]);
+
+  const enableSelect = React.useCallback(() => {
+    setSelected("title");
+  }, [setSelected]);
+
+  const handleOnDragEnd = React.useCallback(
+    (e: KonvaEventObject<DragEvent>) => {
+      setPos(({ x, y }) => ({
+        x: e.target.x() - x,
+        y: e.target.y() - y,
+      }));
+    },
+    [setPos],
+  );
+
+  const handleOnTransform = React.useCallback(() => {
+    const node = shapeRef.current;
+    if (!node) return;
+    const scaleX = node.scaleX();
+    const scaleY = node.scaleY();
+    console.log("TODO: Implement scale", scaleX, scaleY);
+  }, []);
+
   return (
     <React.Fragment>
       <Text
@@ -48,24 +75,13 @@ const TextTransformer: React.FC<{
         text={` ${text} `}
         fill={color}
         fontSize={fontSize}
-        x={x + (pos.x ?? 0)}
-        y={y + (pos.y ?? 0)}
+        x={x + pos.x}
+        y={y + pos.y}
         draggable
-        onClick={onSelect}
-        onDragStart={onSelect}
-        onDragEnd={(e) => {
-          setPos({
-            x: e.target.x() - x,
-            y: e.target.y() - y,
-          });
-        }}
-        onTransform={() => {
-          const node = shapeRef.current;
-          if (!node) return;
-          const scaleX = node.scaleX();
-          const scaleY = node.scaleY();
-          console.log("TODO: Implement scale", scaleX, scaleY);
-        }}
+        onClick={toggleSelect}
+        onDragStart={enableSelect}
+        onDragEnd={handleOnDragEnd}
+        onTransform={handleOnTransform}
       />
       {isSelected && <Transformer ref={trRef} rotateEnabled={false} />}
     </React.Fragment>
@@ -73,13 +89,13 @@ const TextTransformer: React.FC<{
 };
 
 const RectTransformer: React.FC<{
-  shapeProps: Konva.RectConfig;
+  shapeProps: RectConfig;
   isSelected: boolean;
-  onSelect: () => void;
-  onChange: (newProps: Konva.RectConfig) => void;
+  setSelected: React.Dispatch<React.SetStateAction<"" | "title" | "shape">>;
+  onChange: (newProps: RectConfig) => void;
   ui: EntityUI;
   parentType: string;
-}> = ({ shapeProps, isSelected, onChange, onSelect, ui, parentType }) => {
+}> = ({ shapeProps, isSelected, onChange, setSelected, ui, parentType }) => {
   const [{ transparent, color }, setMenu] = useControls(
     "Shape Props",
     () => ({
@@ -113,9 +129,8 @@ const RectTransformer: React.FC<{
 
   const dispatch = useLibraryDispatch();
 
-  const handleOnDragEnd = React.useCallback(
+  const handleDrag = React.useCallback(
     (e: KonvaEventObject<DragEvent>) => {
-      return;
       let x = e.currentTarget.x();
       let y = e.currentTarget.y();
       const width = e.currentTarget.width();
@@ -138,6 +153,15 @@ const RectTransformer: React.FC<{
         y = sidePaneHeight - 4 * innerBorderWidth - height;
         e.currentTarget.y(y);
       }
+
+      return { x, y, width, height };
+    },
+    [centerPaneWidth, innerBorderWidth, sidePaneHeight],
+  );
+
+  const handleOnDragEnd = React.useCallback(
+    (e: KonvaEventObject<DragEvent>) => {
+      const { x, y, width, height } = handleDrag(e);
 
       dispatch({
         type: "updateRootThumbnail",
@@ -151,33 +175,12 @@ const RectTransformer: React.FC<{
         },
       });
     },
-    [dispatch, parentType, centerPaneWidth, innerBorderWidth, sidePaneHeight, shapeProps],
+    [dispatch, parentType, shapeProps, handleDrag],
   );
 
   const handleOnDragMove = React.useCallback(
     (e: KonvaEventObject<DragEvent>) => {
-      let x = e.currentTarget.x();
-      let y = e.currentTarget.y();
-      const width = e.currentTarget.width();
-      const height = e.currentTarget.height();
-
-      if (x < 0) {
-        x = 0;
-        e.currentTarget.x(0);
-      }
-      if (y < 0) {
-        y = 0;
-        e.currentTarget.y(0);
-      }
-
-      if (x + width > centerPaneWidth - 4 * innerBorderWidth) {
-        x = centerPaneWidth - 4 * innerBorderWidth - width;
-        e.currentTarget.x(x);
-      }
-      if (y + height > sidePaneHeight - 4 * innerBorderWidth) {
-        y = sidePaneHeight - 4 * innerBorderWidth - height;
-        e.currentTarget.y(y);
-      }
+      const { x, y } = handleDrag(e);
 
       onChange({
         ...shapeProps,
@@ -185,7 +188,7 @@ const RectTransformer: React.FC<{
         y,
       });
     },
-    [onChange, shapeProps, centerPaneWidth, innerBorderWidth, sidePaneHeight],
+    [onChange, shapeProps, handleDrag],
   );
 
   const handleOnTransform = React.useCallback(() => {
@@ -232,6 +235,22 @@ const RectTransformer: React.FC<{
     });
   }, [centerPaneWidth, innerBorderWidth, onChange, shapeProps, sidePaneHeight]);
 
+  const toggleSelect = React.useCallback(() => {
+    setSelected((prev) => (prev === "shape" ? "" : "shape"));
+  }, [setSelected]);
+
+  const enableSelect = React.useCallback(() => {
+    setSelected("shape");
+  }, [setSelected]);
+
+  const boundBoxFunc = React.useCallback((oldBox: Box, newBox: Box) => {
+    // Limit resize.
+    if (newBox.width < 35 || newBox.height < 35) {
+      return oldBox;
+    }
+    return newBox;
+  }, []);
+
   return (
     <React.Fragment>
       <Rect
@@ -240,29 +259,24 @@ const RectTransformer: React.FC<{
         fill={transparent ? undefined : color}
         stroke="black"
         strokeEnabled={transparent}
-        onClick={onSelect}
+        onClick={toggleSelect}
         draggable
-        onDragStart={onSelect}
+        onDragStart={enableSelect}
         onDragMove={handleOnDragMove}
         onDragEnd={handleOnDragEnd}
         onTransform={handleOnTransform}
       />
-      {isSelected && (
-        <Transformer
-          ref={trRef}
-          rotateEnabled={false}
-          keepRatio={false}
-          boundBoxFunc={(oldBox, newBox) => {
-            // Limit resize.
-            if (newBox.width < 35 || newBox.height < 35) {
-              return oldBox;
-            }
-            return newBox;
-          }}
-        />
-      )}
+      {isSelected && <Transformer ref={trRef} rotateEnabled={false} keepRatio={false} boundBoxFunc={boundBoxFunc} />}
     </React.Fragment>
   );
+};
+
+type RectConfig = {
+  fill?: string;
+  width: number;
+  height: number;
+  x: number;
+  y: number;
 };
 
 export const ThumbnailEditor: React.FC<{
@@ -272,7 +286,7 @@ export const ThumbnailEditor: React.FC<{
   outputs: IO[];
 }> = ({ title, ui, inputs, outputs }) => {
   const { centerPaneX, centerPaneWidth, innerBorderWidth, sidePaneHeight } = React.useContext(PaneCtx);
-  const [shapeProps, setShapeProps] = React.useState<Konva.RectConfig>({});
+  const [shapeProps, setShapeProps] = React.useState<RectConfig>({ ...ui.shape });
   const [selected, setSelected] = React.useState<"" | "shape" | "title">("");
 
   React.useEffect(() => {
@@ -285,63 +299,35 @@ export const ThumbnailEditor: React.FC<{
     });
   }, [ui.shape]);
 
-  const dispatch = useLibraryDispatch();
-
-  const handleOnShapeChange = React.useCallback(
-    (e: Konva.RectConfig) => {
-      setShapeProps(e);
-      console.log("change:", e);
-
-      dispatch({
-        type: "updateRootThumbnail",
-        parentType: title,
-        x: e.x,
-        y: e.y,
-        width: e.width,
-        height: e.height,
-      });
-    },
-    [setShapeProps, dispatch, title],
+  const inputComponents = React.useMemo(
+    () => inputs.map((elem, i) => <Circle key={i} fill="white" radius={10} x={shapeProps.x} y={shapeProps.y + shapeProps.height * elem.y} />),
+    [inputs, shapeProps],
   );
 
+  const outputComponents = React.useMemo(
+    () =>
+      outputs.map((elem, i) => <Circle key={i} fill="white" radius={10} x={shapeProps.x + shapeProps.width} y={shapeProps.y + shapeProps.height * elem.y} />),
+    [outputs, shapeProps],
+  );
+
+  const unselect = React.useCallback(() => {
+    setSelected("");
+  }, []);
+
   return (
-    <>
-      <Group x={centerPaneX + innerBorderWidth * 2 + ui.shape.x} y={innerBorderWidth * 2 + ui.shape.y}>
-        <Rect width={centerPaneWidth} height={sidePaneHeight} onClick={() => setSelected("")} />
-        {inputs.map((elem, i) => (
-          <Circle key={i} fill="white" radius={10} x={shapeProps.x} y={(shapeProps.y ?? 0) + (shapeProps.height ?? 0) * (elem.y ?? 0)} />
-        ))}
-        {outputs.map((elem, i) => (
-          <Circle
-            key={i}
-            fill="white"
-            radius={10}
-            x={(shapeProps.x ?? 0) + (shapeProps.width ?? 0)}
-            y={(shapeProps.y ?? 0) + (shapeProps.height ?? 0) * (elem.y ?? 0)}
-          />
-        ))}
-        <RectTransformer
-          shapeProps={shapeProps}
-          isSelected={selected === "shape"}
-          onSelect={() => {
-            setSelected("shape");
-          }}
-          onChange={handleOnShapeChange}
-          ui={ui}
-          parentType={title}
-        />
-        <TextTransformer
-          ui={ui}
-          x={shapeProps.x ?? 0}
-          y={shapeProps.y ?? 0}
-          text={title}
-          isSelected={selected === "title"}
-          onSelect={() => {
-            setSelected("title");
-          }}
-          parentType={title}
-        />
-      </Group>
-    </>
+    <Group x={centerPaneX + innerBorderWidth * 2} y={innerBorderWidth * 2}>
+      <Rect width={centerPaneWidth} height={sidePaneHeight} onClick={unselect} />
+      {inputComponents}
+      {outputComponents}
+      <RectTransformer
+        shapeProps={shapeProps}
+        isSelected={selected === "shape"}
+        setSelected={setSelected}
+        onChange={setShapeProps}
+        ui={ui}
+        parentType={title}
+      />
+      <TextTransformer ui={ui} x={shapeProps.x} y={shapeProps.y} text={title} isSelected={selected === "title"} setSelected={setSelected} parentType={title} />
+    </Group>
   );
 };
