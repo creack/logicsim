@@ -46,8 +46,6 @@ export type EntityUI = {
     x: number;
     y: number;
     fontSize: number;
-    scaleX: number;
-    scaleY: number;
     color: string;
   };
 };

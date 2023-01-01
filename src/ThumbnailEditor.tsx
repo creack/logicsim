@@ -16,7 +16,8 @@ const TextTransformer: React.FC<{
   y: number;
   ui: EntityUI;
   parentType: string;
-}> = ({ text, isSelected = false, setSelected, x, y, ui }) => {
+}> = ({ text, isSelected = false, setSelected, x, y, ui, parentType }) => {
+  const dispatch = useLibraryDispatch();
   const [{ fontSize, color }, setMenu] = useControls(
     "Title Props",
     () => ({
@@ -28,7 +29,6 @@ const TextTransformer: React.FC<{
   React.useEffect(() => {
     setMenu({ fontSize: ui.title.fontSize, color: ui.title.color });
   }, [setMenu, ui.title]);
-  const [pos, setPos] = React.useState({ x: 0, y: 0 });
 
   const shapeRef = React.useRef<Konva.Text>(null);
   const trRef = React.useRef<Konva.Transformer>(null);
@@ -52,21 +52,21 @@ const TextTransformer: React.FC<{
 
   const handleOnDragEnd = React.useCallback(
     (e: KonvaEventObject<DragEvent>) => {
-      setPos(({ x, y }) => ({
-        x: e.target.x() - x,
-        y: e.target.y() - y,
-      }));
+      dispatch({ type: "updateThumbnailUITextCoordinates", parentType, x: e.currentTarget.x() - ui.shape.x, y: e.currentTarget.y() - ui.shape.y });
     },
-    [setPos],
+    [dispatch, parentType, ui.shape.x, ui.shape.y],
   );
 
-  const handleOnTransform = React.useCallback(() => {
+  const handleOnTransformEnd = React.useCallback(() => {
     const node = shapeRef.current;
     if (!node) return;
     const scaleX = node.scaleX();
-    const scaleY = node.scaleY();
-    console.log("TODO: Implement scale", scaleX, scaleY);
-  }, []);
+
+    node.scaleX(1);
+    node.scaleY(1);
+
+    dispatch({ type: "updateThumbnailUITextProps", parentType, color, fontSize: fontSize * scaleX });
+  }, [dispatch, parentType, color, fontSize]);
 
   return (
     <React.Fragment>
@@ -75,15 +75,15 @@ const TextTransformer: React.FC<{
         text={` ${text} `}
         fill={color}
         fontSize={fontSize}
-        x={x + pos.x}
-        y={y + pos.y}
+        x={x}
+        y={y}
         draggable
         onClick={toggleSelect}
         onDragStart={enableSelect}
         onDragEnd={handleOnDragEnd}
-        onTransform={handleOnTransform}
+        onTransformEnd={handleOnTransformEnd}
       />
-      {isSelected && <Transformer ref={trRef} rotateEnabled={false} />}
+      {isSelected && <Transformer ref={trRef} rotateEnabled={false} keepRatio enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]} />}
     </React.Fragment>
   );
 };
@@ -375,7 +375,15 @@ export const ThumbnailEditor: React.FC<{
         ui={ui}
         parentType={title}
       />
-      <TextTransformer ui={ui} x={shapeProps.x} y={shapeProps.y} text={title} isSelected={selected === "title"} setSelected={setSelected} parentType={title} />
+      <TextTransformer
+        ui={ui}
+        x={ui.shape.x + ui.title.x}
+        y={ui.shape.y + ui.title.y}
+        text={title}
+        isSelected={selected === "title"}
+        setSelected={setSelected}
+        parentType={title}
+      />
     </Group>
   );
 };

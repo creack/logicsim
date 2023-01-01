@@ -10,6 +10,8 @@ type actionTypes =
   | { type: "updateRootTitle"; parentType: string; title: string }
   | { type: "newEntity"; parentType: string; Type: string }
   | { type: "updateRootThumbnail"; parentType: string; x: number; y: number; width: number; height: number }
+  | { type: "updateThumbnailUITextCoordinates"; parentType: string; x: number; y: number }
+  | { type: "updateThumbnailUITextProps"; parentType: string; fontSize: number; color: string }
   | { type: "updateThumbnailUIPins"; parentType: string; radius: number; color: string }
   | {
       type: "updateChildEntityCoordinates";
@@ -70,8 +72,6 @@ const newRoot = (title: string): Entity => ({
     title: {
       x: 0,
       y: 0,
-      scaleX: 1,
-      scaleY: 1,
       fontSize: 18,
       color: "white",
     },
@@ -149,6 +149,40 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
                   y: action.y,
                   width: action.width,
                   height: action.height,
+                },
+              },
+            }
+          : parent,
+      );
+
+    case "updateThumbnailUITextCoordinates":
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              ui: {
+                ...parent.ui,
+                title: {
+                  ...parent.ui.title,
+                  x: action.x,
+                  y: action.y,
+                },
+              },
+            }
+          : parent,
+      );
+
+    case "updateThumbnailUITextProps":
+      return state.map((parent) =>
+        parent.Type === action.parentType
+          ? {
+              ...parent,
+              ui: {
+                ...parent.ui,
+                title: {
+                  ...parent.ui.title,
+                  fontSize: action.fontSize,
+                  color: action.color,
                 },
               },
             }
