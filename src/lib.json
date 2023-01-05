@@ -42,8 +42,8 @@
     }
   },
   {
-    "Type": "raw8segment",
-    "title": "raw8segment",
+    "Type": "raw7segment",
+    "title": "raw7segment",
     "inputs": [
       {
         "title": "0",
@@ -82,7 +82,7 @@
     "entities": [],
     "connections": [],
     "ui": {
-      "component": "raw8segment",
+      "component": "raw7segment",
       "pins": {
         "radius": 5
       },

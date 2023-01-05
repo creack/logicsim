@@ -11,7 +11,7 @@ import { LogicLabel } from "./Label";
 import { LibraryCtx, LibraryDispatchCtx, useLibrary, useLibraryDispatch, useLibraryReducer, useLookupLibrary } from "./reducer";
 import { ThumbnailEditor } from "./ThumbnailEditor";
 import { PaneCtx, ScreenCtx, UILayoutFooter, UILayoutHeader, UILayoutMain } from "./UI";
-import { RawEightSegmentsDisplay } from "./Components";
+import { RawSevenSegmentsDisplay } from "./Components";
 
 const Main: React.FC<{
   srcType: string;
@@ -79,14 +79,12 @@ const Main: React.FC<{
 
   const { inputs, outputs, renderedIOPanes } = useIOPanes(g, setConnections, handleOnClickConnection, viewMode);
 
-  console.log(">>>", base.ui.component);
-
   return (
     <Group width={screenWidth} height={screenHeight} onMouseMove={handleOnMouseMove} onClick={handleOnClick}>
       <LogicLabel x={centerPaneX + centerPaneWidth / 2.1} y={-innerBorderWidth - outerBorderWidth} fontSize={outerBorderWidth} text={title} />
       <Rect x={centerPaneX} y={0} width={centerPaneWidth} height={sidePaneHeight} />
 
-      <RawEightSegmentsDisplay inputs={g.root.inputs} />
+      {false && <RawSevenSegmentsDisplay inputs={g.root.inputs} />}
 
       {viewMode === "main" && (
         <>

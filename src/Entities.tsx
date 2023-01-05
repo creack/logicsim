@@ -3,6 +3,7 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { button, useControls } from "leva";
 import React from "react";
 import { Circle, Group, Rect, Text, Transformer } from "react-konva";
+import { RawSevenSegmentsDisplay } from "./Components";
 import type { Connection, ConnectionIO, Entity, EntityUI, IO } from "./entityInstance";
 import { EntityInstance, formatEntity } from "./entityInstance";
 import { LogicLabel } from "./Label";
@@ -155,6 +156,10 @@ const EntityTransformer: React.FC<{
   );
 };
 
+const componentFactory: Record<string, (inputs: IO[]) => React.FC> = {
+  raw7segment: (inputs: IO[]) => () => <RawSevenSegmentsDisplay inputs={inputs} />,
+};
+
 const EntityComponent: React.FC<{
   entity: EntityInstance;
   handleOnClickConnection: (target: ConnectionIO, x: number, y: number) => void;
@@ -175,6 +180,7 @@ const EntityComponent: React.FC<{
   const ui = React.useMemo(
     () =>
       ({
+        component: base.ui.component,
         pins: { ...base.ui.pins, ...(entity.root as Entity).ui.pins },
         shape: { ...base.ui.shape, ...(entity.root as Entity).ui.shape },
         title: { ...base.ui.title, ...(entity.root as Entity).ui.title },
@@ -253,6 +259,9 @@ const EntityComponent: React.FC<{
   const isSelected = selected === entity.root.title;
   const shapeRef = React.useRef<Konva.Group>(null);
 
+  console.log("<<<", ui.component);
+  const Foo = ui.component && componentFactory[ui.component](entity.root.inputs);
+
   return (
     <>
       <LogicLabel
@@ -273,13 +282,8 @@ const EntityComponent: React.FC<{
         onDragMove={handleOnDragMove}
         onDragEnd={handleOnDragEnd}
       >
-        <Rect
-          width={ui.shape.width}
-          height={ui.shape.height}
-          stroke="red"
-          strokeEnabled
-          fill={"transparent" in ui.shape && ui.shape.transparent ? undefined : ui.shape.color}
-        />
+        <Rect width={ui.shape.width} height={ui.shape.height} fill={"transparent" in ui.shape && ui.shape.transparent ? undefined : ui.shape.color} />
+        {Foo && <Foo />}
         <Text text={entity.root.Type} fontSize={ui.title.fontSize} x={ui.title.x} y={ui.title.y} fill={ui.title.color} />
         <IOs entity={entity.root} ios={entity.root.inputs} mode="inputs" ui={ui} handleOnClickConnection={handleOnClickConnection} />
         <IOs entity={entity.root} ios={entity.root.outputs} mode="outputs" ui={ui} handleOnClickConnection={handleOnClickConnection} />

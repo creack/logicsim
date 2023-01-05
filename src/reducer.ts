@@ -128,7 +128,7 @@ const reducer = (state: Entity[], action: actionTypes): Entity[] => {
                     Type: action.Type,
                     title,
                     ui: {
-                      shape: { transparent: false, color: "red" },
+                      ...(state.find((elem) => elem.Type === action.Type)?.ui ?? {}),
                     },
                   },
                 ],

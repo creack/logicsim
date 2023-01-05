@@ -1,5 +1,5 @@
 import React from "react";
-import { Circle, Group, Rect } from "react-konva";
+import { Arrow, Circle, Group, Rect } from "react-konva";
 import type { EntityInstance, IO } from "./entityInstance";
 
 export const SignedEigthSegmentsDisplay: React.FC<{
@@ -14,7 +14,7 @@ export const SignedEigthSegmentsDisplay: React.FC<{
 
   const signed = !!instance.root.inputs?.find((elem) => elem.title === "rippleNegative")?.value;
 
-  return <RawEightSegmentsDisplay {...props} inputs={instance.root.outputs} signed={signed} />;
+  return <RawSevenSegmentsDisplay {...props} inputs={instance.root.outputs} signed={signed} />;
 };
 
 export const ThreeDigitDecimalDisplay: React.FC<{
@@ -46,7 +46,7 @@ export const ThreeDigitDecimalDisplay: React.FC<{
   );
 };
 
-export const RawEightSegmentsDisplay: React.FC<{
+export const RawSevenSegmentsDisplay: React.FC<{
   inputs?: IO[];
   x?: number;
   y?: number;
@@ -67,7 +67,7 @@ export const RawEightSegmentsDisplay: React.FC<{
       {signed ? (
         <Rect x={-10} y={61} width={16} height={8} fill={inputs.find((elem) => elem.title === "7")?.value ? enabledColor : disabledColor} />
       ) : (
-        <Circle x={0} y={115} radius={5} fill={inputs.find((elem) => elem.title === "7")?.value ? enabledColor : disabledColor} />
+        <Circle x={80} y={115} radius={5} fill={inputs.find((elem) => elem.title === "7")?.value ? enabledColor : disabledColor} />
       )}
     </Group>
   );
